@@ -34,7 +34,8 @@ storage/documents/   PDF hasil generate (path relatif binary)
 - [x] **Sprint 1 SELESAI + VERIFIED**: repo, DB, auth, master data, orders, document engine (PI/CI/PL/SI/PEB), UI lengkap, panduan ekspor, CI deploy
 - [x] **LIVE**: https://export.logikraf.id (CF proxy, SSL certbot, nginx→127.0.0.1:8091, systemd logikraf-export-server)
 - [x] Ponytail FULL review: 1 fix diterapkan (validasi FK order create → 400)
-- [ ] Sprint 2 (roadmap): shipment tracking (PEB/NPE, vessel, ETD/POD + notes), dashboard stats, audit log UI, kalkulator CBM/berat, polish UX
+- [x] **Sprint 2 (3/6) SELESAI + VERIFIED**: shipment tracking (auto-status ETD→shipped/POD→completed, lock), dashboard stats, user management (ops, active, RBAC admin)
+- [ ] Sprint 2 sisa (roadmap): audit log UI, kalkulator CBM/berat, polish UX
 - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional
