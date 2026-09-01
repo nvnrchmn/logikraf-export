@@ -83,6 +83,24 @@ export interface Order {
   updated_at: string
 }
 
+export interface DashboardStats {
+  orders_total: number
+  orders_this_month: number
+  fob_this_month: number
+  by_status: Record<string, number>
+  active_shipments: {
+    id: number
+    order_no: string
+    buyer_name: string
+    status: OrderStatus
+    etd: string | null
+    vessel: string
+    total_fob: number
+  }[]
+  recent_docs: { id: number; doc_no: string; doc_type: string; order_no: string; created_at: string }[]
+  recent_orders: { id: number; order_no: string; buyer_name: string; status: OrderStatus; total_fob: number; created_at: string }[]
+}
+
 export interface Shipment {
   id: number
   order_id: number

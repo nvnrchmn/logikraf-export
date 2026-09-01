@@ -65,6 +65,10 @@ func Setup(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	authed.Post("/orders/:id/documents/:type", docH.Generate)
 	authed.Get("/documents/:id/file", docH.File)
 
+	// Dashboard
+	dashH := &handlers.DashboardHandler{DB: db}
+	authed.Get("/dashboard/stats", dashH.Stats)
+
 	// Shipment
 	shipH := &handlers.ShipmentHandler{DB: db}
 	authed.Put("/orders/:id/shipment", shipH.Update)
