@@ -14,17 +14,17 @@ func sampleDocData(docType string) DocData {
 	return DocData{
 		DocNo: docType + "-2026-0001-001",
 		Company: models.CompanySetting{
-			CompanyName:  "PT Logika Kreatif Indonesia",
-			Address:      "Jl. Raya Kebayoran Lama No. 12, Kel. Palmerah, Kec. Kebayoran Lama, Jakarta Selatan, DKI Jakarta, Gedung Menara Lt. 5 Suite 502, Kav. 33",
-			City:         "Jakarta, Indonesia",
-			Email:        "export@logikraf.id",
-			Phone:        "+62 21 1234 5678",
-			Website:      "logikraf.id",
-			NIB:          "812345678901234",
-			NPWP:         "012345678901234",
-			SignerName:   "Nova Nurachman",
-			SignerTitle:  "Director",
-			SignatureImage: "",
+			CompanyName:    "PT Logika Kreatif Indonesia",
+			Address:        "Jl. Raya Kebayoran Lama No. 12, Kel. Palmerah, Kec. Kebayoran Lama, Jakarta Selatan, DKI Jakarta, Gedung Menara Lt. 5 Suite 502, Kav. 33",
+			City:           "Jakarta, Indonesia",
+			Email:          "export@logikraf.id",
+			Phone:          "+62 21 1234 5678",
+			Website:        "logikraf.id",
+			NIB:            "812345678901234",
+			NPWP:           "012345678901234",
+			SignerName:     "Nova Nurachman",
+			SignerTitle:    "Direktur",
+			SignatureImage: "storage/signatures/tidak-ada.png", // file hilang ≠ gagal render
 		},
 		Order: models.Order{
 			OrderNo:      "ORD-2026-0001",

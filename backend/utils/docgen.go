@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -245,17 +246,19 @@ func signatureBlock(pdf *fpdf.Fpdf, d DocData) {
 	pdf.SetTextColor(100, 116, 139)
 	pdf.CellFormat(0, 5, "For and on behalf of "+c.CompanyName, "", 1, "R", false, 0, "")
 	pdf.Ln(2)
-	// Gambar tanda tangan (jika ada)
+	// Gambar tanda tangan (jika file ada — file hilang ≠ gagal render)
 	if c.SignatureImage != "" {
-		if info := pdf.RegisterImage(c.SignatureImage, ""); info != nil {
-			w := 45.0
-			h := w * info.Height() / info.Width()
-			if h > 20 {
-				h = 20
-				w = h * info.Width() / info.Height()
+		if _, err := os.Stat(c.SignatureImage); err == nil {
+			if info := pdf.RegisterImage(c.SignatureImage, ""); info != nil {
+				w := 45.0
+				h := w * info.Height() / info.Width()
+				if h > 20 {
+					h = 20
+					w = h * info.Width() / info.Height()
+				}
+				pdf.ImageOptions(c.SignatureImage, 210-15-w, pdf.GetY(), w, h, false, fpdf.ImageOptions{ImageType: "", ReadDpi: true}, 0, "")
+				pdf.SetY(pdf.GetY() + h + 1)
 			}
-			pdf.ImageOptions(c.SignatureImage, 210-15-w, pdf.GetY(), w, h, false, fpdf.ImageOptions{ImageType: "", ReadDpi: true}, 0, "")
-			pdf.SetY(pdf.GetY() + h + 1)
 		}
 	}
 	pdf.SetTextColor(0, 0, 0)
