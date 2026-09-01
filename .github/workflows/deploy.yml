@@ -1,0 +1,52 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Build Go binary
+        run: |
+          cd backend
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/export-server .
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy frontend dist
+        run: |
+          rsync -avz --delete --rsync-path="sudo rsync" -e "ssh -i ~/.ssh/deploy_key" frontend/dist/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/export.logikraf.id/frontend/dist/
+
+      - name: Deploy backend binary + assets
+        run: |
+          rsync -avz --chmod=F755 --rsync-path="sudo rsync" -e "ssh -i ~/.ssh/deploy_key" backend/bin/export-server ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/export.logikraf.id/backend/bin/export-server
+          rsync -avz --rsync-path="sudo rsync" -e "ssh -i ~/.ssh/deploy_key" backend/assets/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/export.logikraf.id/backend/assets/
+
+      - name: Restart service
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo systemctl restart logikraf-export-server && echo 'Deployment successful!'"
