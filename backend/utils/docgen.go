@@ -17,7 +17,7 @@ import (
 const (
 	SellerName    = "PT Logika Kreatif Indonesia"
 	SellerAddress = "Jakarta, Indonesia"
-	SellerTaxID   = "NIB / NPWP: per data perusahaan"
+	SellerTaxID   = "Business ID (NIB) / Tax ID (NPWP): per company data"
 )
 
 // Data dokumen yang diteruskan ke generator.
@@ -90,28 +90,47 @@ func fontPath(style string) string {
 
 func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	c := d.Company
+	// Baris 1: nama perusahaan (kiri, wrap 90mm) + judul dokumen (kanan)
 	pdf.SetFont("DVS-B", "", 13)
-	pdf.SetTextColor(30, 41, 59)
-	pdf.CellFormat(90, 8, c.CompanyName, "", 0, "L", false, 0, "")
+	y := pdf.GetY()
+	pdf.MultiCell(90, 8, c.CompanyName, "", "L", false)
 	pdf.SetFont("DVS-B", "", 12)
+	pdf.SetXY(105, y)
 	pdf.CellFormat(90, 8, title, "", 1, "R", false, 0, "")
+
+	// Baris 2: alamat (kiri, wrap) + nomor dokumen (kanan)
 	pdf.SetFont("DVS", "", 8)
 	pdf.SetTextColor(100, 116, 139)
 	addr := strings.TrimSpace(c.Address + ", " + c.City)
 	if addr != "" {
-		pdf.CellFormat(90, 5, addr, "", 0, "L", false, 0, "")
+		y = pdf.GetY()
+		pdf.MultiCell(90, 5, addr, "", "L", false)
+		pdf.SetXY(105, y)
 		pdf.CellFormat(90, 5, "No. "+d.DocNo, "", 1, "R", false, 0, "")
 	}
+
+	// Baris 3: kontak (kiri, wrap) + tanggal (kanan)
 	contact := strings.TrimSpace(c.Email + "  |  " + c.Phone)
 	if contact != "" {
-		pdf.CellFormat(90, 5, contact, "", 0, "L", false, 0, "")
+		y = pdf.GetY()
+		pdf.MultiCell(90, 5, contact, "", "L", false)
+		pdf.SetXY(105, y)
 		pdf.CellFormat(90, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
 	} else {
 		pdf.CellFormat(90, 5, "", "", 0, "L", false, 0, "")
 		pdf.CellFormat(90, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
 	}
+
+	// NIB & NPWP — label Inggris, wrap bila melebihi lebar halaman
 	if c.NIB != "" || c.NPWP != "" {
-		pdf.CellFormat(0, 5, "NIB: "+c.NIB+"   NPWP: "+c.NPWP, "", 1, "L", false, 0, "")
+		var ids []string
+		if c.NIB != "" {
+			ids = append(ids, "Business ID (NIB): "+c.NIB)
+		}
+		if c.NPWP != "" {
+			ids = append(ids, "Tax ID (NPWP): "+c.NPWP)
+		}
+		pdf.MultiCell(0, 5, strings.Join(ids, "   |   "), "", "L", false)
 	}
 	pdf.SetTextColor(0, 0, 0)
 	pdf.Ln(4)
@@ -124,7 +143,7 @@ func buyerBlock(pdf *fpdf.Fpdf, o models.Order) {
 	pdf.SetFont("DVS", "", 9)
 	pdf.CellFormat(0, 5, o.Buyer.CompanyName, "", 1, "L", false, 0, "")
 	if o.Buyer.Address != "" {
-		pdf.CellFormat(0, 5, o.Buyer.Address, "", 1, "L", false, 0, "")
+		pdf.MultiCell(0, 5, o.Buyer.Address, "", "L", false)
 	}
 	city := strings.TrimSpace(o.Buyer.City + ", " + o.Buyer.Country)
 	if city != "" {
@@ -157,7 +176,7 @@ func termsBlock(pdf *fpdf.Fpdf, o models.Order) {
 		pdf.SetTextColor(100, 116, 139)
 		pdf.CellFormat(35, 5, t[0]+":", "", 0, "L", false, 0, "")
 		pdf.SetTextColor(0, 0, 0)
-		pdf.CellFormat(0, 5, t[1], "", 1, "L", false, 0, "")
+		pdf.MultiCell(0, 5, t[1], "", "L", false)
 	}
 	pdf.Ln(3)
 }
@@ -167,11 +186,14 @@ func itemsTable(pdf *fpdf.Fpdf, o models.Order) {
 	widths := []float64{8, 70, 22, 20, 25, 35}
 	headers := []string{"No", "Description", "HS Code", "Qty", "Unit Price", "Amount"}
 	pdf.SetFont("DVS-B", "", 8)
+	pdf.SetFillColor(226, 232, 240) // slate-200 — header terang
+	pdf.SetTextColor(15, 23, 42)    // teks gelap di atas fill
 	for i, h := range headers {
 		pdf.CellFormat(widths[i], 7, h, "1", 0, "C", true, 0, "")
 	}
 	pdf.Ln(-1)
 	pdf.SetFont("DVS", "", 8)
+	pdf.SetTextColor(0, 0, 0)
 	for i, it := range o.Items {
 		desc := it.Product.Name
 		if it.Product.Description != "" {
@@ -259,10 +281,10 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 
 	eksportir := d.Company.CompanyName + " — " + strings.TrimSpace(d.Company.Address+", "+d.Company.City)
 	if d.Company.NIB != "" {
-		eksportir += " | NIB: " + d.Company.NIB
+		eksportir += " | Business ID (NIB): " + d.Company.NIB
 	}
 	if d.Company.NPWP != "" {
-		eksportir += " | NPWP: " + d.Company.NPWP
+		eksportir += " | Tax ID (NPWP): " + d.Company.NPWP
 	}
 	rows := [][2]string{
 		{"Eksportir", eksportir},
@@ -284,7 +306,7 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 		pdf.CellFormat(35, 6, r[0]+":", "", 0, "L", false, 0, "")
 		pdf.SetTextColor(0, 0, 0)
 		pdf.SetFont("DVS", "", 8)
-		pdf.CellFormat(0, 6, r[1], "", 1, "L", false, 0, "")
+		pdf.MultiCell(0, 6, r[1], "", "L", false)
 	}
 	pdf.Ln(3)
 
@@ -292,11 +314,14 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 	widths := []float64{22, 52, 18, 25, 22, 22}
 	headers := []string{"HS Code", "Uraian Barang", "Jumlah", "Nilai FOB (USD)", "Berat Neto (kg)", "Berat Kotor (kg)"}
 	pdf.SetFont("DVS-B", "", 8)
+	pdf.SetFillColor(226, 232, 240)
+	pdf.SetTextColor(15, 23, 42)
 	for i, h := range headers {
 		pdf.CellFormat(widths[i], 7, h, "1", 0, "C", true, 0, "")
 	}
 	pdf.Ln(-1)
 	pdf.SetFont("DVS", "", 8)
+	pdf.SetTextColor(0, 0, 0)
 	netTotal, grossTotal, fobTotal := 0.0, 0.0, 0.0
 	for _, it := range o.Items {
 		net := it.Product.NetWeightG * float64(it.Quantity) / 1000
@@ -319,11 +344,14 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 		pdf.Ln(-1)
 	}
 	pdf.SetFont("DVS-B", "", 8)
+	pdf.SetFillColor(226, 232, 240)
+	pdf.SetTextColor(15, 23, 42)
 	totals := []string{"", "TOTAL", "", formatMoney(fobTotal), formatWeight(netTotal), formatWeight(grossTotal)}
 	for i, v := range totals {
 		pdf.CellFormat(widths[i], 6, v, "1", 0, "C", true, 0, "")
 	}
 	pdf.Ln(-1)
+	pdf.SetTextColor(0, 0, 0)
 
 	pdf.Ln(4)
 	pdf.SetFont("DVS", "", 8)
