@@ -70,6 +70,17 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 	if req.BuyerID == 0 || req.IncotermID == 0 || req.PortLoadingID == 0 || req.PortDischargeID == 0 {
 		return c.Status(400).JSON(fiber.Map{"error": "buyer, incoterm, dan pelabuhan wajib diisi"})
 	}
+	// Validasi referensi sebelum insert (hindari FK error 500)
+	var refs struct {
+		Buyer, Incoterm, PortL, PortD int64
+	}
+	h.DB.Model(&models.Buyer{}).Where("id = ?", req.BuyerID).Count(&refs.Buyer)
+	h.DB.Model(&models.Incoterm{}).Where("id = ?", req.IncotermID).Count(&refs.Incoterm)
+	h.DB.Model(&models.Port{}).Where("id = ?", req.PortLoadingID).Count(&refs.PortL)
+	h.DB.Model(&models.Port{}).Where("id = ?", req.PortDischargeID).Count(&refs.PortD)
+	if refs.Buyer == 0 || refs.Incoterm == 0 || refs.PortL == 0 || refs.PortD == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "data referensi (buyer/incoterm/pelabuhan) tidak valid"})
+	}
 	currency := req.Currency
 	if currency == "" {
 		currency = "USD"
