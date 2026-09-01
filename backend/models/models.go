@@ -79,10 +79,11 @@ type Order struct {
 	PaymentTerms    string    `gorm:"size:255" json:"payment_terms"`
 	Status          string    `gorm:"size:20;default:draft;index" json:"status"`
 	Notes           string    `json:"notes"`
-	CreatedBy       uint      `json:"created_by"`
+	CreatedBy       uint        `json:"created_by"`
 	Items           []OrderItem `gorm:"foreignKey:OrderID" json:"items"`
-	Shipment        *Shipment `gorm:"foreignKey:OrderID" json:"shipment,omitempty"`
-	CreatedAt       time.Time `json:"created_at"`
+	Shipment        *Shipment   `gorm:"foreignKey:OrderID" json:"shipment,omitempty"`
+	TotalFOB        float64     `gorm:"-" json:"total_fob"`
+	CreatedAt       time.Time   `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
@@ -93,6 +94,7 @@ type OrderItem struct {
 	Product      Product `gorm:"foreignKey:ProductID" json:"product"`
 	Quantity     int     `json:"quantity"`
 	UnitPriceUSD float64 `gorm:"type:decimal(14,4)" json:"unit_price_usd"`
+	LineTotal    float64 `gorm:"-" json:"line_total"`
 }
 
 // Shipment — 1:1 dengan Order; field standar aturan, fleksibel dipakai setelah ekspor nyata
