@@ -77,9 +77,25 @@ export interface Order {
   notes: string
   total_fob: number
   items: OrderItem[]
+  shipment?: Shipment | null
   created_by: number
   created_at: string
   updated_at: string
+}
+
+export interface Shipment {
+  id: number
+  order_id: number
+  peb_no: string
+  npe_no: string
+  vessel_name: string
+  voyage_no: string
+  stuffing_date: string | null
+  gate_in_date: string | null
+  etd: string | null
+  onboard_date: string | null
+  pod_date: string | null
+  notes: string
 }
 
 export interface Document {

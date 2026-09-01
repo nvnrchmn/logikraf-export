@@ -10,9 +10,11 @@ import {
   Pencil,
   Check,
   X,
+  Truck,
+  Save,
 } from 'lucide-react'
 import { api, getToken } from '../lib/api'
-import type { Document, Order, Product } from '../lib/types'
+import type { Document, Order, Product, Shipment } from '../lib/types'
 import { fmtMoney, statusFlow, statusMeta } from '../lib/status'
 import { Button, inputCls } from '../components/UI'
 
@@ -41,6 +43,17 @@ export default function OrderDetail() {
   const [qty, setQty] = useState('')
   const [price, setPrice] = useState('')
   const [busy, setBusy] = useState(false)
+
+  // shipment form
+  const emptySh: Shipment = {
+    id: 0, order_id: 0, peb_no: '', npe_no: '', vessel_name: '', voyage_no: '',
+    stuffing_date: null, gate_in_date: null, etd: null, onboard_date: null, pod_date: null, notes: '',
+  }
+  const [sh, setSh] = useState<Shipment>(emptySh)
+
+  useEffect(() => {
+    if (order?.shipment) setSh({ ...emptySh, ...order.shipment })
+  }, [order?.shipment])
 
   const load = useCallback(async () => {
     try {
@@ -156,7 +169,24 @@ export default function OrderDetail() {
     }
   }
 
+  const saveShipment = async (e: FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    setError('')
+    try {
+      await api(`/orders/${oid}/shipment`, { method: 'PUT', body: sh })
+      await load()
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const setShField = (k: keyof Shipment, v: string | null) => setSh((s) => ({ ...s, [k]: v }))
+
   const canEdit = order.status === 'draft'
+  const shipLocked = order.status === 'draft' || order.status === 'completed' || order.status === 'cancelled'
   const sm = statusMeta[order.status]
 
   return (
@@ -277,6 +307,69 @@ export default function OrderDetail() {
             </Button>
           </form>
         )}
+      </div>
+
+      {/* Pengiriman */}
+      <div className="mb-5 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <Truck size={15} className="text-indigo-400" /> Pengiriman
+          </h2>
+          {!shipLocked && <span className="text-[11px] text-zinc-500">Isi ETD → otomatis shipped · isi POD → otomatis completed</span>}
+        </div>
+        <form onSubmit={saveShipment} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">PEB No</label>
+            <input className={inputCls} placeholder="e.g. 003456" value={sh.peb_no} disabled={shipLocked} onChange={(e) => setShField('peb_no', e.target.value)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">NPE No</label>
+            <input className={inputCls} placeholder="e.g. 004321" value={sh.npe_no} disabled={shipLocked} onChange={(e) => setShField('npe_no', e.target.value)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">Vessel</label>
+            <input className={inputCls} placeholder="Kapal" value={sh.vessel_name} disabled={shipLocked} onChange={(e) => setShField('vessel_name', e.target.value)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">Voyage</label>
+            <input className={inputCls} placeholder="e.g. 018E" value={sh.voyage_no} disabled={shipLocked} onChange={(e) => setShField('voyage_no', e.target.value)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">Stuffing Date</label>
+            <input type="date" className={inputCls} value={sh.stuffing_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('stuffing_date', e.target.value || null)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">Gate-In Date</label>
+            <input type="date" className={inputCls} value={sh.gate_in_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('gate_in_date', e.target.value || null)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">ETD</label>
+            <input type="date" className={inputCls} value={sh.etd?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('etd', e.target.value || null)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">Onboard Date</label>
+            <input type="date" className={inputCls} value={sh.onboard_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('onboard_date', e.target.value || null)} />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] text-zinc-500">POD Date</label>
+            <input type="date" className={inputCls} value={sh.pod_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('pod_date', e.target.value || null)} />
+          </div>
+          <div className="sm:col-span-2 lg:col-span-2">
+            <label className="mb-1 block text-[11px] text-zinc-500">Catatan Pengiriman</label>
+            <input className={inputCls} placeholder="opsional" value={sh.notes} disabled={shipLocked} onChange={(e) => setShField('notes', e.target.value)} />
+          </div>
+          <div className="flex items-end">
+            {shipLocked ? (
+              <div className="w-full rounded-lg bg-zinc-800/50 px-3 py-2 text-[11px] text-zinc-500">
+                {order.status === 'completed' ? 'Pengiriman selesai — terkunci' : 'Pengiriman bisa diisi setelah order confirmed'}
+              </div>
+            ) : (
+              <Button type="submit" disabled={busy} className="w-full">
+                <Save size={14} /> Simpan Pengiriman
+              </Button>
+            )}
+          </div>
+        </form>
       </div>
 
       {/* Dokumen */}

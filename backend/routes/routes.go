@@ -64,4 +64,8 @@ func Setup(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	authed.Get("/orders/:id/documents", docH.List)
 	authed.Post("/orders/:id/documents/:type", docH.Generate)
 	authed.Get("/documents/:id/file", docH.File)
+
+	// Shipment
+	shipH := &handlers.ShipmentHandler{DB: db}
+	authed.Put("/orders/:id/shipment", shipH.Update)
 }

@@ -31,7 +31,7 @@ var validStatus = []string{"draft", "confirmed", "packed", "shipped", "completed
 func (h *OrderHandler) List(c fiber.Ctx) error {
 	status := c.Query("status")
 	q := c.Query("q")
-	query := h.DB.Preload("Buyer").Preload("Incoterm").Preload("PortLoading").Preload("PortDischarge").Preload("Items.Product")
+	query := h.DB.Preload("Buyer").Preload("Incoterm").Preload("PortLoading").Preload("PortDischarge").Preload("Items.Product").Preload("Shipment")
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
@@ -116,7 +116,7 @@ func (h *OrderHandler) Get(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
 	}
 	var o models.Order
-	err = h.DB.Preload("Buyer").Preload("Incoterm").Preload("PortLoading").Preload("PortDischarge").Preload("Items.Product").First(&o, id).Error
+	err = h.DB.Preload("Buyer").Preload("Incoterm").Preload("PortLoading").Preload("PortDischarge").Preload("Items.Product").Preload("Shipment").First(&o, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.Status(404).JSON(fiber.Map{"error": "pesanan tidak ditemukan"})
 	}
