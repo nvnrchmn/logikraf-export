@@ -60,6 +60,23 @@ export interface OrderItem {
   product?: Product
 }
 
+export interface CompanySetting {
+  id: number
+  company_name: string
+  address: string
+  city: string
+  country: string
+  email: string
+  phone: string
+  website: string
+  nib: string
+  npwp: string
+  signer_name: string
+  signer_title: string
+  signature_image: string
+  updated_at: string
+}
+
 export type ShippingMode = 'courier' | 'lcl' | 'fcl'
 
 export interface Order {

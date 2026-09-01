@@ -143,6 +143,25 @@ type DocSequence struct {
 	LastNo uint
 }
 
+// CompanySetting — profil perusahaan (1 baris, id=1) untuk header dokumen & PEB
+type CompanySetting struct {
+	ID             uint      `gorm:"primaryKey" json:"id"`
+	CompanyName    string    `gorm:"size:191" json:"company_name"`
+	Address        string    `json:"address"`
+	City           string    `gorm:"size:100" json:"city"`
+	Country        string    `gorm:"size:64" json:"country"`
+	Email          string    `gorm:"size:100" json:"email"`
+	Phone          string    `gorm:"size:32" json:"phone"`
+	Website        string    `gorm:"size:100" json:"website"`
+	NIB            string    `gorm:"size:64" json:"nib"`
+	NPWP           string    `gorm:"size:32" json:"npwp"`
+	SignerName     string    `gorm:"size:100" json:"signer_name"`
+	SignerTitle    string    `gorm:"size:100" json:"signer_title"`
+	SignatureImage string    `gorm:"size:255" json:"signature_image"`
+	UpdatedBy      uint      `json:"updated_by"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
 // AuditLog — jejak perubahan ringan
 type AuditLog struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`

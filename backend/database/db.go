@@ -52,6 +52,7 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 		&models.Document{},
 		&models.DocSequence{},
 		&models.AuditLog{},
+		&models.CompanySetting{},
 	); err != nil {
 		return nil, fmt.Errorf("AutoMigrate gagal: %w", err)
 	}

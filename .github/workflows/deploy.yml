@@ -44,8 +44,8 @@ jobs:
 
       - name: Deploy backend binary + assets
         run: |
-          rsync -avz --compress-level=6 --timeout=180 --contimeout=30 --chmod=F755 -e "ssh -i ~/.ssh/deploy_key" backend/bin/export-server ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/export.logikraf.id/backend/bin/export-server
-          rsync -avz --timeout=180 --contimeout=30 -e "ssh -i ~/.ssh/deploy_key" backend/assets/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/export.logikraf.id/backend/assets/
+          rsync -avz --compress-level=6 --timeout=180 --contimeout=30 --rsync-path="sudo rsync" --chmod=F755 -e "ssh -i ~/.ssh/deploy_key" backend/bin/export-server ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/export.logikraf.id/backend/bin/export-server
+          rsync -avz --timeout=180 --contimeout=30 --rsync-path="sudo rsync" -e "ssh -i ~/.ssh/deploy_key" backend/assets/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/export.logikraf.id/backend/assets/
 
       - name: Restart service
         run: |

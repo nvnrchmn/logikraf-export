@@ -72,7 +72,13 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal membuat nomor dokumen"})
 	}
 
-	data, err := utils.BuildDocument(utils.DocData{DocNo: docNo, Order: o})
+	// Muat profil perusahaan untuk header & tanda tangan
+	var cs models.CompanySetting
+	if err := h.DB.First(&cs, 1).Error; err != nil {
+		cs = models.CompanySetting{ID: 1}
+	}
+
+	pdfBytes, err := utils.BuildDocument(utils.DocData{DocNo: docNo, Order: o, Company: cs})
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal membuat dokumen: " + err.Error()})
 	}
@@ -82,7 +88,7 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyiapkan folder dokumen"})
 	}
 	filePath := filepath.Join(dir, docNo+".pdf")
-	if err := os.WriteFile(filePath, data, 0o644); err != nil {
+	if err := os.WriteFile(filePath, pdfBytes, 0o644); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan dokumen"})
 	}
 

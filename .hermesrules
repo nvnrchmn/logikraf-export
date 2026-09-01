@@ -26,6 +26,7 @@ Alur: supplier kirim barang jadi → gudang → order buyer → packing → doku
 backend/   main.go, config, models, database (db+seed), middleware, handlers, routes, utils (docgen, docseq, jwt, password)
 frontend/  Vite React TS: pages, components, context, lib/api.ts
 storage/documents/   PDF hasil generate (path relatif binary)
+storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 ```
 
 ## Status Terakhir (2026-09-01)
@@ -36,6 +37,7 @@ storage/documents/   PDF hasil generate (path relatif binary)
 - [x] Ponytail FULL review: 1 fix diterapkan (validasi FK order create → 400)
 - [x] **Sprint 2 (3/6) SELESAI + VERIFIED**: shipment tracking (auto-status ETD→shipped/POD→completed, lock), dashboard stats, user management (ops, active, RBAC admin)
 - [x] **Sprint 2 (6/6) SELESAI + VERIFIED**: audit log UI (nama user via preload), kalkulator CBM/berat, breadcrumbs + motion di semua halaman (CSS keyframes, modal scale, drawer slide)
+- [x] **Profil perusahaan SELESAI + Ponytail review (3 fix)**: CRUD company settings (admin-only PUT/upload), upload tanda tangan PNG/JPG ≤2MB (fpdf tak support WEBP; file lama dibersihkan; GET pakai path DB bukan hardcode), header dokumen + PEB dinamis dari profil (NIB/NPWP conditional), route `/settings` + nav Pengaturan (admin)
 - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional

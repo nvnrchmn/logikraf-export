@@ -78,6 +78,13 @@ func Setup(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	dashH := &handlers.DashboardHandler{DB: db}
 	authed.Get("/dashboard/stats", dashH.Stats)
 
+	// Company settings
+	compH := &handlers.CompanyHandler{DB: db}
+	authed.Get("/company", compH.Get)
+	authed.Get("/company/signature-image", compH.SignatureImage)
+	authed.Put("/company", middleware.RequireRole("admin"), compH.Update)
+	authed.Post("/company/signature", middleware.RequireRole("admin"), compH.UploadSignature)
+
 	// Shipment
 	shipH := &handlers.ShipmentHandler{DB: db}
 	authed.Put("/orders/:id/shipment", shipH.Update)

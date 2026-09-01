@@ -9,6 +9,7 @@ import {
   Users,
   ScrollText,
   Calculator,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -24,6 +25,7 @@ const NAV = [
   { to: '/calculator', label: 'Kalkulator CBM', icon: Calculator },
   { to: '/users', label: 'Pengguna', icon: Users, admin: true },
   { to: '/audit', label: 'Audit Log', icon: ScrollText, admin: true },
+  { to: '/settings', label: 'Pengaturan', icon: Settings, admin: true },
 ]
 
 export default function Layout() {

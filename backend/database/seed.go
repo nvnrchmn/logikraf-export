@@ -10,11 +10,32 @@ import (
 	"gorm.io/gorm"
 )
 
-// Seed mengisi data awal: pelabuhan, incoterms, admin.
+// Seed mengisi data awal: pelabuhan, incoterms, admin, profil perusahaan.
 func Seed(db *gorm.DB, cfg *config.Config) {
 	seedPorts(db)
 	seedIncoterms(db)
 	seedAdmin(db, cfg)
+	seedCompany(db)
+}
+
+func seedCompany(db *gorm.DB) {
+	var count int64
+	db.Model(&models.CompanySetting{}).Count(&count)
+	if count > 0 {
+		return
+	}
+	db.Create(&models.CompanySetting{
+		ID:          1,
+		CompanyName: "PT Logika Kreatif Indonesia",
+		Address:     "Jl. Raya Cibubur No. 12, Ciracas",
+		City:        "Jakarta Timur",
+		Country:     "Indonesia",
+		Email:       "export@logikraf.id",
+		Website:     "www.logikraf.id",
+		SignerName:  "Nova Nurachman",
+		SignerTitle: "Direktur",
+	})
+	log.Printf("[seed] profil perusahaan default dibuat")
 }
 
 func seedPorts(db *gorm.DB) {

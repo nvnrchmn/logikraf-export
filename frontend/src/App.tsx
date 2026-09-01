@@ -11,6 +11,7 @@ import Guide from './pages/Guide'
 import Users from './pages/Users'
 import Audit from './pages/Audit'
 import Calculator from './pages/Calculator'
+import Settings from './pages/Settings'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="users" element={<Users />} />
             <Route path="audit" element={<Audit />} />
             <Route path="calculator" element={<Calculator />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
