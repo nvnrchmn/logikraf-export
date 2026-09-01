@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Builds
+dist/
+*.exe
+*.out
+export-server
+*.test
+
+# Env & secrets
+.env
+.env.*
+*.local
+/etc/logikraf-export.env
+
+# Runtime storage
+storage/documents/*.pdf
+storage/
+!storage/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Logs
+*.log

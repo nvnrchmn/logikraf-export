@@ -1,0 +1,42 @@
+# logikraf-export — .hermesrules
+
+## Deskripsi
+Sistem manajemen ekspor internal **logikraf.id** (KBLI 46511): mousepad & sejenisnya.
+Alur: supplier kirim barang jadi → gudang → order buyer → packing → dokumen (PI/CI/PL/SI + PEB Data Sheet) → tracking manual.
+±10 shipment/bulan, **belum pernah ekspor** → sistem juga berfungsi sebagai panduan ekspor pertama.
+
+## Tech Stack
+- Backend: Go 1.25 + Fiber v3 + GORM + golang-jwt/v5 + bcrypt + go-pdf/fpdf
+- Frontend: React 19 + Vite + Tailwind v4 + react-router v7 + lucide-react
+- DB: MySQL 8 (database `logikraf_export`, user aaPanel)
+- Deploy: GitHub Actions (build) → rsync → systemd `logikraf-export-server`
+- Domain: `export.logikraf.id` → aaPanel reverse proxy `127.0.0.1:8091` + SSL
+
+## Arsitektur
+- Single-tenant internal, 2 role: `admin`, `ops` (RBAC middleware extensible)
+- **Single source of truth:** 1 entry di order → semua dokumen digenerate (PI, CI, PL, SI, PEB Data Sheet)
+- Dokumen export: **English**; UI: **Indonesia**
+- Nomor dokumen: `ORD|PI|CI|PL|SI-YYYYMM-NNNN` (tabel `doc_sequences`, counter per tipe/bulan)
+- **TANPA** EDI CEISA/INSW/SiMoDis (belum pernah ekspor → PEB via PPJK/manual, sistem siapkan data lengkap)
+- HS Code per produk: disimpan & ditampilkan, **wajib diverifikasi PPJK/DJBC** sebelum ekspor pertama
+- Field shipment (PEB/NPE, gate-in, POD) = standar aturan, fleksibel disesuaikan setelah ekspor nyata
+
+## Struktur
+```
+backend/   main.go, config, models, database (db+seed), middleware, handlers, routes, utils (docgen, docseq, jwt, password)
+frontend/  Vite React TS: pages, components, context, lib/api.ts
+storage/documents/   PDF hasil generate (path relatif binary)
+```
+
+## Status Terakhir (2026-09-01)
+- [x] Diskusi PRD & scope final (internal, mousepad, 10 shipment/bulan, belum pernah ekspor, docs EN + UI ID)
+- [x] Rencana Sprint 1: `~/.hermes/plans/2026-09-01_210450-logikraf-export-sprint1.md`
+- [ ] Task 1: init repo + scaffold
+- [ ] Task 2–12: sisa sprint (lihat rencana)
+
+## Aturan
+- Sprint staged: selesai + **verified** (tool output nyata), auto commit + push
+- Build di GitHub Actions (bukan di VPS), rsync deploy, systemd restart
+- **Ponytail config FULL** sebelum merge
+- Secret (DB_DSN, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD) hanya di `/etc/logikraf-export.env` — TIDAK di git/config
+- Jangan edit `/etc/nginx/nginx.conf` (aaPanel handle vhost)
