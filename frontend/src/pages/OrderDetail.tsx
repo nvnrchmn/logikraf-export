@@ -7,6 +7,7 @@ import {
   Trash2,
   FileText,
   Download,
+  Eye,
   Pencil,
   Check,
   X,
@@ -35,6 +36,7 @@ export default function OrderDetail() {
   const navigate = useNavigate()
   const [order, setOrder] = useState<Order | null>(null)
   const [docs, setDocs] = useState<Document[]>([])
+  const [delDoc, setDelDoc] = useState<Document | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -168,6 +170,37 @@ export default function OrderDetail() {
       URL.revokeObjectURL(url)
     } catch (err) {
       setError((err as Error).message)
+    }
+  }
+
+  const previewDoc = async (docId: number) => {
+    try {
+      const res = await fetch(`/api/documents/${docId}/file`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const url = URL.createObjectURL(await res.blob())
+      window.open(url, '_blank')
+      // revoke terlambat supaya tab baru sempat render PDF
+      setTimeout(() => URL.revokeObjectURL(url), 60000)
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
+  const deleteDoc = async () => {
+    if (!delDoc) return
+    setBusy(true)
+    setError('')
+    try {
+      await api(`/documents/${delDoc.id}`, { method: 'DELETE' })
+      setDelDoc(null)
+      await load()
+    } catch (err) {
+      setError((err as Error).message)
+      setDelDoc(null)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -428,12 +461,42 @@ export default function OrderDetail() {
                 <span className="font-mono text-sm">{d.doc_no}</span>
                 <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-400">{d.doc_type}</span>
               </div>
-              <button onClick={() => downloadDoc(d.id)} className="flex items-center gap-1.5 rounded-lg bg-indigo-600/15 px-3 py-1.5 text-xs text-indigo-400 hover:bg-indigo-600/25">
-                <Download size={13} /> Unduh
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => previewDoc(d.id)} title="Preview" className="flex items-center gap-1.5 rounded-lg bg-zinc-800/70 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700">
+                  <Eye size={13} /> Preview
+                </button>
+                <button onClick={() => downloadDoc(d.id)} className="flex items-center gap-1.5 rounded-lg bg-indigo-600/15 px-3 py-1.5 text-xs text-indigo-400 hover:bg-indigo-600/25">
+                  <Download size={13} /> Unduh
+                </button>
+                <button onClick={() => setDelDoc(d)} title="Hapus" className="flex items-center gap-1.5 rounded-lg bg-rose-600/10 px-3 py-1.5 text-xs text-rose-400 hover:bg-rose-600/20">
+                  <Trash2 size={13} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
+
+        {delDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setDelDoc(null)}>
+            <div className="anim-pop w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-5" onClick={(e) => e.stopPropagation()}>
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                <Trash2 size={16} className="text-rose-400" /> Hapus dokumen?
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-400">
+                <span className="font-mono text-zinc-300">{delDoc.doc_no}</span> ({delDoc.doc_type}) akan dihapus
+                permanen dari server. Dokumen tetap bisa dibuat ulang dari data order ini.
+              </p>
+              <div className="mt-4 flex justify-end gap-2">
+                <button onClick={() => setDelDoc(null)} className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700">
+                  Batal
+                </button>
+                <button onClick={deleteDoc} disabled={busy} className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-500 disabled:opacity-50">
+                  {busy ? 'Menghapus…' : 'Ya, hapus'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {order.status !== 'cancelled' && (
           <div className="mt-4 flex flex-wrap gap-2">

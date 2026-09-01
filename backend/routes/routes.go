@@ -73,6 +73,7 @@ func Setup(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	authed.Get("/orders/:id/documents", docH.List)
 	authed.Post("/orders/:id/documents/:type", docH.Generate)
 	authed.Get("/documents/:id/file", docH.File)
+	authed.Delete("/documents/:id", docH.Delete)
 
 	// Dashboard
 	dashH := &handlers.DashboardHandler{DB: db}

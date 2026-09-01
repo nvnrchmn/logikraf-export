@@ -38,6 +38,7 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 - [x] **Sprint 2 (3/6) SELESAI + VERIFIED**: shipment tracking (auto-status ETD→shipped/POD→completed, lock), dashboard stats, user management (ops, active, RBAC admin)
 - [x] **Sprint 2 (6/6) SELESAI + VERIFIED**: audit log UI (nama user via preload), kalkulator CBM/berat, breadcrumbs + motion di semua halaman (CSS keyframes, modal scale, drawer slide)
 - [x] **Profil perusahaan SELESAI + Ponytail review (3 fix)**: CRUD company settings (admin-only PUT/upload), upload tanda tangan PNG/JPG ≤2MB (fpdf tak support WEBP; file lama dibersihkan; GET pakai path DB bukan hardcode), header dokumen + PEB dinamis dari profil (NIB/NPWP conditional), route `/settings` + nav Pengaturan (admin)
+- [x] **Dokumen: preview + hapus SELESAI**: tombol Preview (icon mata, buka PDF di tab baru via blob+auth header), tombol hapus (modal konfirmasi, DELETE /documents/:id → file fisik + record + audit log; aman karena bisa di-generate ulang)
 - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional

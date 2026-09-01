@@ -138,3 +138,26 @@ func (h *DocumentHandler) File(c fiber.Ctx) error {
 	c.Set("Content-Disposition", `inline; filename="`+doc.DocNo+`.pdf"`)
 	return c.SendFile(doc.FilePath)
 }
+
+// Delete — menghapus dokumen (file fisik + record). Aman: bisa di-generate ulang dari data order.
+// DELETE /api/documents/:id
+func (h *DocumentHandler) Delete(c fiber.Ctx) error {
+	id, err := idParam(c)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
+	}
+	var doc models.Document
+	if err := h.DB.First(&doc, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "dokumen tidak ditemukan"})
+	}
+	// hapus file fisik; abaikan bila sudah tidak ada (idempoten)
+	if err := os.Remove(doc.FilePath); err != nil && !os.IsNotExist(err) {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal menghapus file dokumen"})
+	}
+	if err := h.DB.Delete(&doc).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal menghapus dokumen"})
+	}
+	userID, _ := c.Locals(middleware.CtxUserID).(uint)
+	LogAudit(h.DB, userID, "delete", "document", strconv.FormatUint(uint64(doc.ID), 10), doc.DocNo+" ("+doc.DocType+")")
+	return c.JSON(fiber.Map{"ok": true})
+}
