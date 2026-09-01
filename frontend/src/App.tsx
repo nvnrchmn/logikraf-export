@@ -7,7 +7,7 @@ import Products from './pages/Products'
 import Buyers from './pages/Buyers'
 import Orders from './pages/Orders'
 import OrderDetail from './pages/OrderDetail'
-import Placeholder from './pages/Placeholder'
+import Guide from './pages/Guide'
 
 export default function App() {
   return (
@@ -21,7 +21,7 @@ export default function App() {
             <Route path="orders/:id" element={<OrderDetail />} />
             <Route path="products" element={<Products />} />
             <Route path="buyers" element={<Buyers />} />
-            <Route path="guide" element={<Placeholder title="Panduan Ekspor (Task 9b)" />} />
+            <Route path="guide" element={<Guide />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
