@@ -58,4 +58,10 @@ func Setup(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	// Audit (admin)
 	auditH := &handlers.AuditHandler{DB: db}
 	authed.Get("/audit-logs", middleware.RequireRole("admin"), auditH.List)
+
+	// Documents
+	docH := &handlers.DocumentHandler{DB: db}
+	authed.Get("/orders/:id/documents", docH.List)
+	authed.Post("/orders/:id/documents/:type", docH.Generate)
+	authed.Get("/documents/:id/file", docH.File)
 }
