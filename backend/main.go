@@ -5,6 +5,7 @@ import (
 
 	"logikraf-export/backend/config"
 	"logikraf-export/backend/database"
+	"logikraf-export/backend/routes"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -34,6 +35,8 @@ func main() {
 	app.Get("/api/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "ok", "service": "logikraf-export"})
 	})
+
+	routes.Setup(app, db, cfg)
 
 	log.Printf("[main] logikraf-export listen di :%s", cfg.Port)
 	if err := app.Listen(":" + cfg.Port); err != nil {
