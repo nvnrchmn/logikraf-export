@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"path/filepath"
 
 	"logikraf-export/backend/config"
 	"logikraf-export/backend/database"
@@ -14,6 +16,13 @@ import (
 )
 
 func main() {
+	// Kerjakan dari folder binary — path relatif (assets/, storage/, .env)
+	// tetap valid apa pun cwd (systemd, supervisor, manual).
+	if exe, err := os.Executable(); err == nil {
+		if dir := filepath.Dir(exe); dir != "" {
+			_ = os.Chdir(dir)
+		}
+	}
 	cfg := config.Load()
 
 	db, err := database.Connect(cfg)
