@@ -31,8 +31,17 @@ storage/documents/   PDF hasil generate (path relatif binary)
 ## Status Terakhir (2026-09-01)
 - [x] Diskusi PRD & scope final (internal, mousepad, 10 shipment/bulan, belum pernah ekspor, docs EN + UI ID)
 - [x] Rencana Sprint 1: `~/.hermes/plans/2026-09-01_210450-logikraf-export-sprint1.md`
-- [ ] Task 1: init repo + scaffold
-- [ ] Task 2–12: sisa sprint (lihat rencana)
+- [x] **Sprint 1 SELESAI + VERIFIED**: repo, DB, auth, master data, orders, document engine (PI/CI/PL/SI/PEB), UI lengkap, panduan ekspor, CI deploy
+- [x] **LIVE**: https://export.logikraf.id (CF proxy, SSL certbot, nginx→127.0.0.1:8091, systemd logikraf-export-server)
+- [x] Ponytail FULL review: 1 fix diterapkan (validasi FK order create → 400)
+- [ ] Sprint 2 (roadmap): shipment tracking (PEB/NPE, vessel, ETD/POD + notes), dashboard stats, audit log UI, kalkulator CBM/berat, polish UX
+- [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
+
+## Operasional
+- CI: `.github/workflows/deploy.yml` — push main → build → rsync (sudo) → restart systemd
+- GitHub secrets: VPS_SSH_KEY, VPS_HOST, VPS_USER (nvnrchmn)
+- Env prod: `/etc/logikraf-export.env` (600) — DB, JWT, ADMIN (admin@logikraf.id / admin123)
+- Vhost: `/www/server/panel/vhost/nginx/export.logikraf.id.conf` (80+443, proxy 8091)
 
 ## Aturan
 - Sprint staged: selesai + **verified** (tool output nyata), auto commit + push
