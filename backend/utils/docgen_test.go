@@ -56,7 +56,8 @@ func sampleDocData(docType string) DocData {
 			},
 			Items: []models.OrderItem{
 				{
-					Quantity: 500,
+					Quantity:     500,
+					UnitPriceUSD: 8.5,
 					Product: models.Product{
 						SKU:          "MP-DESK-01",
 						Name:         "Deskmat non-slip dengan permukaan microweave, tepi dijahit ganda untuk ketahanan pemakaian harian",
@@ -71,7 +72,8 @@ func sampleDocData(docType string) DocData {
 					},
 				},
 				{
-					Quantity: 300,
+					Quantity:     300,
+					UnitPriceUSD: 12.0,
 					Product: models.Product{
 						SKU:          "MB-XL-02",
 						Name:         "Extended mousepad dengan wrist rest memory foam",
@@ -112,5 +114,24 @@ func TestBuildDocumentRender(t *testing.T) {
 			t.Fatal(err)
 		}
 		t.Logf("%s OK -> %s (%d bytes)", typ, p, len(buf))
+	}
+}
+
+func TestMoneyInWords(t *testing.T) {
+	cases := []struct {
+		in   float64
+		want string
+	}{
+		{0, "SAY: Zero USD AND 00/100"},
+		{19, "SAY: Nineteen USD AND 00/100"},
+		{21, "SAY: Twenty One USD AND 00/100"},
+		{100, "SAY: One Hundred USD AND 00/100"},
+		{850, "SAY: Eight Hundred Fifty USD AND 00/100"},
+		{1234567.89, "SAY: One Million Two Hundred Thirty Four Thousand Five Hundred Sixty Seven USD AND 89/100"},
+	}
+	for _, c := range cases {
+		if got := moneyInWords(c.in, "USD"); got != c.want {
+			t.Errorf("moneyInWords(%v) = %q, want %q", c.in, got, c.want)
+		}
 	}
 }

@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -45,9 +46,11 @@ func BuildDocument(d DocData) ([]byte, error) {
 		buyerBlock(pdf, d.Order)
 		termsBlock(pdf, d.Order)
 		itemsTable(pdf, d.Order)
+		originBlock(pdf, d)
 		totalsBlock(pdf, d.Order, d.DocType())
 		notesBlock(pdf, d.Order)
 		signatureBlock(pdf, d)
+		eoeFooter(pdf)
 	}
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
@@ -226,6 +229,13 @@ func totalsBlock(pdf *fpdf.Fpdf, o models.Order, docType string) {
 	}
 	pdf.SetFont("DVS-B", "", 10)
 	pdf.CellFormat(0, 8, "Total FOB Value ("+o.Currency+"): "+formatMoney(totalFOB), "", 1, "R", false, 0, "")
+	// Terbilang — hanya dokumen bernilai (PI/CI)
+	if docType == "PI" || docType == "CI" {
+		pdf.SetFont("DVS", "", 8)
+		pdf.SetTextColor(100, 116, 139)
+		pdf.CellFormat(0, 5, moneyInWords(totalFOB, o.Currency), "", 1, "R", false, 0, "")
+		pdf.SetTextColor(0, 0, 0)
+	}
 }
 
 func notesBlock(pdf *fpdf.Fpdf, o models.Order) {
@@ -237,6 +247,76 @@ func notesBlock(pdf *fpdf.Fpdf, o models.Order) {
 	pdf.CellFormat(0, 5, "Notes:", "", 1, "L", false, 0, "")
 	pdf.SetFont("DVS", "", 8)
 	pdf.MultiCell(0, 5, o.Notes, "", "L", false)
+}
+
+func originBlock(pdf *fpdf.Fpdf, d DocData) {
+	pdf.Ln(1)
+	pdf.SetFont("DVS", "", 8)
+	pdf.SetTextColor(100, 116, 139)
+	origin := d.Company.Country
+	if origin == "" {
+		origin = "Indonesia"
+	}
+	pdf.CellFormat(0, 5, "Country of Origin: "+origin, "", 1, "L", false, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+}
+
+func eoeFooter(pdf *fpdf.Fpdf) {
+	pdf.Ln(6)
+	pdf.SetFont("DVS", "", 7)
+	pdf.SetTextColor(150, 150, 150)
+	pdf.CellFormat(0, 4, "E.&O.E. — Errors and Omissions Excepted", "", 1, "R", false, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+}
+
+var smallWords = []string{"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+	"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"}
+var tensWords = []string{"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"}
+var scaleWords = []string{"", "Thousand", "Million", "Billion", "Trillion"}
+
+func hundredWords(n int) string {
+	var parts []string
+	if n >= 100 {
+		parts = append(parts, smallWords[n/100], "Hundred")
+		n %= 100
+	}
+	if n >= 20 {
+		parts = append(parts, tensWords[n/10])
+		if n%10 != 0 {
+			parts = append(parts, smallWords[n%10])
+		}
+	} else if n > 0 {
+		parts = append(parts, smallWords[n])
+	}
+	return strings.Join(parts, " ")
+}
+
+func intToWords(n int64) string {
+	if n == 0 {
+		return "Zero"
+	}
+	if n < 0 {
+		return "Minus " + intToWords(-n)
+	}
+	var parts []string
+	for i := 0; n > 0; i++ {
+		if n%1000 != 0 {
+			part := hundredWords(int(n % 1000))
+			if scaleWords[i] != "" {
+				part += " " + scaleWords[i]
+			}
+			parts = append([]string{part}, parts...)
+		}
+		n /= 1000
+	}
+	return strings.Join(parts, " ")
+}
+
+// moneyInWords — terbilang total invoice, format "SAY: X USD AND 00/100".
+func moneyInWords(amount float64, currency string) string {
+	dollars := int64(math.Floor(amount + 1e-9))
+	cents := int64(math.Round((amount - float64(dollars)) * 100))
+	return fmt.Sprintf("SAY: %s %s AND %02d/100", intToWords(dollars), currency, cents)
 }
 
 func signatureBlock(pdf *fpdf.Fpdf, d DocData) {
