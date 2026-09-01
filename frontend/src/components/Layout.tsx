@@ -51,7 +51,7 @@ export default function Layout() {
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/25'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 border border-transparent'
+                  : 'text-zinc-300 hover:text-white hover:bg-zinc-800/70 border border-transparent'
               }`
             }
           >
@@ -84,7 +84,7 @@ export default function Layout() {
   return (
     <div className="min-h-full bg-zinc-950">
       {/* Sidebar desktop */}
-      <aside className="hidden md:block fixed inset-y-0 left-0 w-60 bg-zinc-925 border-r border-zinc-800/80">
+      <aside className="hidden md:block fixed inset-y-0 left-0 w-60 bg-zinc-900 border-r border-zinc-800/80">
         {sidebar}
       </aside>
 
@@ -104,7 +104,7 @@ export default function Layout() {
       {open && (
         <div className="md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-72 bg-zinc-925 border-r border-zinc-800 shadow-2xl">
+          <div className="absolute inset-y-0 left-0 w-72 bg-zinc-900 border-r border-zinc-800 shadow-2xl">
             <button
               onClick={() => setOpen(false)}
               className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200"
