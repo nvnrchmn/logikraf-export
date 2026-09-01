@@ -16,12 +16,21 @@ import (
 )
 
 func main() {
-	// Kerjakan dari folder binary — path relatif (assets/, storage/, .env)
-	// tetap valid apa pun cwd (systemd, supervisor, manual).
+	// Kerjakan dari folder proyek (yang berisi assets/) — path relatif
+	// (assets/, storage/, .env) tetap valid apa pun cwd (systemd, supervisor, manual).
 	if exe, err := os.Executable(); err == nil {
-		if dir := filepath.Dir(exe); dir != "" {
-			_ = os.Chdir(dir)
+		dir := filepath.Dir(exe)
+		for i := 0; i < 3; i++ {
+			if _, err := os.Stat(filepath.Join(dir, "assets")); err == nil {
+				break
+			}
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break
+			}
+			dir = parent
 		}
+		_ = os.Chdir(dir)
 	}
 	cfg := config.Load()
 
