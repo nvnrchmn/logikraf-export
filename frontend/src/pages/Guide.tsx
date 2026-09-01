@@ -1,74 +1,114 @@
 import {
-  Handshake,
   FileText,
-  Package,
   Truck,
   Ship,
-  CreditCard,
   Info,
   AlertTriangle,
   BookOpen,
+  Boxes,
+  Scale,
+  CheckCircle2,
 } from 'lucide-react'
 import Breadcrumbs from '../components/Breadcrumbs'
 
-const steps = [
+// ===== Mode pengiriman =====
+const modes = [
   {
-    icon: Handshake,
-    title: '1. Penawaran & PO Buyer',
-    desc: 'Kirim penawaran (quote) ke buyer. Setelah buyer setuju, terima Purchase Order (PO) — pastikan harga, Incoterm, dan jadwal jelas.',
-  },
-  {
-    icon: FileText,
-    title: '2. Proforma Invoice (PI)',
-    desc: 'Buat PI dari order di sistem ini. PI dikirim ke buyer sebagai konfirmasi harga & syarat sebelum pembayaran.',
-  },
-  {
-    icon: Package,
-    title: '3. Barang Jadi & Packing',
-    desc: 'Supplier mengirim barang jadi ke gudang. Cek kualitas, timbang, ukur, dan catat jumlah koli untuk Packing List.',
-  },
-  {
-    icon: FileText,
-    title: '4. Dokumen Export (CI, PL, SI)',
-    desc: 'Setelah order dikonfirmasi, generate Commercial Invoice, Packing List, dan Shipping Instruction dari sistem — semua dari satu data.',
-  },
-  {
-    icon: Ship,
-    title: '5. PEB & Pengiriman',
-    desc: 'Siapkan PEB Data Sheet dari sistem, verifikasi HS Code dengan PPJK/DJBC, lalu submit PEB (lewat PPJK atau CEISA). Setelah itu: stuffing, gate-in, dan kapal berangkat (ETD).',
-  },
-  {
+    id: 'courier',
     icon: Truck,
-    title: '6. Bill of Lading (B/L)',
-    desc: 'Terima B/L dari shipping line via forwarder setelah barang dimuat. B/L adalah bukti kepemilikan barang — simpan baik-baik.',
+    title: 'Mode Kurir / Parcel',
+    badge: 'bg-indigo-600/15 text-indigo-300',
+    desc: 'Kiriman kecil (5–50 pcs) lewat DHL/FedEx/UPS/JNE Intl. Nilai < $100 & berat < 30 kg.',
+    dokumen: 'PI, CI, PL',
+    incoterm: 'DAP / DDP',
+    aturan: 'Tanpa PEB — kurir handle bea cukai',
+    flow: [
+      'Buyer pesan via WhatsApp/email/marketplace (qty kecil)',
+      'Buat order di sistem: mode Kurir, incoterm DAP/DDP',
+      'Kirim Proforma Invoice (PI) ke buyer',
+      'Terima pembayaran: T/T 100% / PayPal / Wise',
+      'Packing 1 karton — generate Commercial Invoice (CI) + Packing List (PL)',
+      'Jadwalkan pickup kurir (DHL/FedEx/JNE)',
+      'Input kurir + no. AWB + tanggal pickup di sistem → status otomatis "Dikirim"',
+      'Buyer terima → input tanggal delivered → status otomatis "Selesai"',
+    ],
   },
   {
-    icon: CreditCard,
-    title: '7. Pembayaran & DHE',
-    desc: 'Buyer membayar sesuai syarat di PI (T/T, L/C, dsb). Terima dana devisa ekspor, laporkan via bank. Barang sampai (POD) → tutup pesanan.',
+    id: 'lcl',
+    icon: Boxes,
+    title: 'Mode LCL',
+    badge: 'bg-emerald-600/15 text-emerald-300',
+    desc: 'Kiriman menengah (ratusan–ribuan pcs) — kontainer sebagian, bareng eksportir lain.',
+    dokumen: 'PI, CI, PL, SI, PEB',
+    incoterm: 'FOB / CIF',
+    aturan: 'PEB wajib via PPJK',
+    flow: [
+      'Buyer kirim PO resmi (qty 500–2.000 pcs)',
+      'Buat order: mode LCL, isi pelabuhan muat/bongkar, incoterm FOB/CIF',
+      'PI → konfirmasi → produksi/persiapan barang jadi',
+      'Packing & hitung CBM/berat (pakai kalkulator di sistem)',
+      'Generate CI + PL + SI (Shipping Instruction)',
+      'Hubungi PPJK/forwarder untuk booking LCL',
+      'Generate PEB Data Sheet → serahkan ke PPJK untuk submit PEB',
+      'Stuffing → gate-in → vessel berangkat (ETD) → onboard',
+      'Input data vessel/PEB/NPE di sistem → status "Dikirim"',
+      'Barang sampai → POD → status "Selesai"',
+    ],
+  },
+  {
+    id: 'fcl',
+    icon: Ship,
+    title: 'Mode FCL',
+    badge: 'bg-amber-600/15 text-amber-300',
+    desc: 'Kiriman besar — kontainer penuh (20/40ft) untuk distributor.',
+    dokumen: 'PI, CI, PL, SI, PEB',
+    incoterm: 'FOB / CIF / CFR',
+    aturan: 'PEB wajib via PPJK',
+    flow: [
+      'PO besar dari distributor (qty ribuan)',
+      'Buat order: mode FCL, pelabuhan, incoterm',
+      'PI → konfirmasi → produksi',
+      'Packing mengikuti kontainer (kalkulator CBM untuk cek muat)',
+      'Generate CI + PL + SI',
+      'PPJK booking kontainer + submit PEB',
+      'Stuffing di gudang → gate-in → loading → berangkat',
+      'Input vessel/voyage/PEB/NPE → "Dikirim"',
+      'POD → "Selesai"',
+    ],
   },
 ]
 
+// ===== Dokumen =====
 const docs = [
-  { code: 'PI', name: 'Proforma Invoice', ket: 'Konfirmasi harga & syarat sebelum pembayaran' },
-  { code: 'CI', name: 'Commercial Invoice', ket: 'Invoice resmi untuk customs & pembayaran' },
-  { code: 'PL', name: 'Packing List', ket: 'Rincian isi kemasan: jumlah, berat, volume' },
-  { code: 'PEB', name: 'Pemberitahuan Ekspor Barang', ket: 'Dokumen wajib ke bea cukai — submit via PPJK/CEISA' },
-  { code: 'NPE', name: 'NPPB / Nota Pelayanan Ekspor', ket: 'Bukti PEB diproses — nomor tracking ekspor' },
-  { code: 'B/L', name: 'Bill of Lading', ket: 'Bukti muat & kepemilikan barang dari shipping line' },
-  { code: 'SI', name: 'Shipping Instruction', ket: 'Instruksi pengiriman ke forwarder/shpping line' },
-  { code: 'COO', name: 'Certificate of Origin', ket: 'Opsional — untuk bea masuk lebih rendah di negara tujuan' },
+  { code: 'PI', name: 'Proforma Invoice', need: 'Semua mode', desc: 'Penawaran resmi sebelum bayar — dipakai sebagai dasar pembayaran buyer.' },
+  { code: 'CI', name: 'Commercial Invoice', need: 'Semua mode', desc: 'Faktur final untuk bea cukai — wajib di setiap pengiriman, termasuk kurir.' },
+  { code: 'PL', name: 'Packing List', need: 'Semua mode', desc: 'Rincian isi: qty, berat neto/kotor, CBM — dipakai kurir & PPJK.' },
+  { code: 'SI', name: 'Shipping Instruction', need: 'LCL / FCL', desc: 'Instruksi ke forwarder untuk booking & muat kontainer. Tidak berlaku di mode kurir.' },
+  { code: 'PEB', name: 'PEB Data Sheet', need: 'LCL / FCL (wajib), Kurir (opsional)', desc: 'Rangkuman data untuk Pemberitahuan Ekspor Barang — diserahkan ke PPJK untuk submit.' },
 ]
 
+// ===== Aturan PEB =====
+const pebRule = [
+  'Nilai FOB ≥ USD 100 ATAU berat ≥ 30 kg → PEB WAJIB (lewat PPJK atau CEISA mandiri)',
+  'Nilai FOB < USD 100 DAN berat < 30 kg → PEB TIDAK wajib (kiriman kurir/parcel)',
+  'Sistem menghitung ini otomatis per order — lihat badge hijau "PEB tidak wajib" di halaman order',
+  'HS Code produk wajib benar & terverifikasi PPJK/DJBC sebelum kiriman laut pertama',
+]
+
+// ===== Istilah =====
 const terms = [
-  { t: 'HS Code', d: 'Kode klasifikasi barang (BTKI) — menentukan tarif & aturan. Verifikasi sebelum ekspor pertama.' },
-  { t: 'Incoterms', d: 'Aturan siapa tanggung jawab apa. FOB: seller serah barang di kapal pelabuhan muat. CIF: seller bayar asuransi + freight.' },
-  { t: 'FOB Value', d: 'Nilai barang di atas kapal pelabuhan muat — basis nilai PEB dan DHE.' },
-  { t: 'ETD / ETA / POD', d: 'Estimated Time of Departure / Arrival / Port of Discharge.' },
-  { t: 'PEB', d: 'Pemberitahuan Ekspor Barang — dokumen wajib ke DJBC untuk setiap ekspor.' },
-  { t: 'PPJK', d: 'Pengusaha Pengurusan Jasa Kepabeanan (forwarder resmi) — bisa mengurus PEB atas nama kita.' },
-  { t: 'DHE', d: 'Devisa Hasil Ekspor — dana dari ekspor wajib masuk sistem keuangan Indonesia sesuai aturan.' },
-  { t: 'Lartas', d: 'Larangan & Pembatasan — sebagian barang butuh izin khusus. Mousepad umumnya tidak termasuk.' },
+  { t: 'FOB', d: 'Free On Board — barang diserahkan di atas kapal; buyer tanggung freight & asuransi' },
+  { t: 'CIF', d: 'Cost, Insurance, Freight — harga termasuk ongkir & asuransi sampai pelabuhan tujuan' },
+  { t: 'DAP / DDP', d: 'Delivered At Place / Delivered Duty Paid — kurir antar sampai tujuan; DDP termasuk bea masuk' },
+  { t: 'AWB', d: 'Air Waybill — nomor resi pengiriman kurir (DHL/FedEx/UPS)' },
+  { t: 'PEB', d: 'Pemberitahuan Ekspor Barang — dokumen bea cukai untuk ekspor laut' },
+  { t: 'NPE', d: 'Nota Pemberitahuan Ekspor — bukti PEB diterima bea cukai' },
+  { t: 'ETD', d: 'Estimated Time of Departure — perkiraan kapal berangkat' },
+  { t: 'POD', d: 'Proof of Delivery — bukti barang diterima pembeli' },
+  { t: 'HS Code', d: 'Kode klasifikasi barang internasional (6–10 digit) untuk bea cukai' },
+  { t: 'PPJK', d: 'Pengusaha Pengurusan Jasa Kepabeanan — forwarder yang urus PEB & bea cukai' },
+  { t: 'LCL / FCL', d: 'Less/Full Container Load — kontainer sebagian / kontainer penuh' },
+  { t: 'CBM', d: 'Cubic Meter — satuan volume muatan (panjang × lebar × tinggi)' },
 ]
 
 export default function Guide() {
@@ -81,68 +121,109 @@ export default function Guide() {
         </div>
         <div>
           <h1 className="text-xl font-semibold">Panduan Ekspor</h1>
-          <p className="text-sm text-zinc-500">Alur lengkap ekspor pertama kali — dari penawaran sampai pembayaran</p>
+          <p className="text-sm text-zinc-500">Alur lengkap dari order sampai barang sampai — untuk ekspor pertama kali</p>
         </div>
       </div>
 
-      <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-200">
-        <div className="flex gap-2">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-          <p>
-            <b>Penting:</b> sebelum ekspor pertama, pastikan perusahaan punya <b>NIB aktif</b> (dari OSS, gratis) dan
-            verifikasi <b>HS Code</b> produk ke PPJK/DJBC. Aturan bisa berubah — selalu cek versi terbaru.
-          </p>
+      <div className="mb-8 rounded-xl border border-indigo-500/25 bg-indigo-600/10 p-4 text-sm text-indigo-200">
+        <div className="mb-1 flex items-center gap-2 font-semibold">
+          <Info size={15} /> Pilih mode di awal
         </div>
+        Saat membuat order, tentukan dulu mode pengirimannya. Semua dokumen, form shipment, dan aturan PEB menyesuaikan otomatis. Mulai dari mode <b>Kurir</b> untuk pesanan kecil — paling sederhana dan tanpa PEB.
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-zinc-400">Alur langkah demi langkah</h2>
-      <div className="stagger mb-8 space-y-3">
-        {steps.map((s) => (
-          <div key={s.title} className="flex gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-600/15 text-indigo-400">
-              <s.icon size={18} />
+      {/* Ringkasan mode */}
+      <h2 className="mb-3 text-sm font-semibold text-zinc-400">Tiga mode pengiriman</h2>
+      <div className="stagger mb-8 grid gap-3 md:grid-cols-3">
+        {modes.map((m) => (
+          <div key={m.id} className="card-lift rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+            <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg ${m.badge}`}>
+              <m.icon size={16} />
             </div>
-            <div>
-              <div className="text-sm font-semibold">{s.title}</div>
-              <div className="mt-1 text-sm text-zinc-400">{s.desc}</div>
+            <div className="text-sm font-semibold">{m.title}</div>
+            <p className="mt-1 text-xs text-zinc-400">{m.desc}</p>
+            <div className="mt-3 space-y-1 text-[11px] text-zinc-500">
+              <div>📄 {m.dokumen}</div>
+              <div>🏷️ {m.incoterm}</div>
+              <div>⚖️ {m.aturan}</div>
             </div>
           </div>
         ))}
       </div>
 
+      {/* Flow detail per mode */}
+      <h2 className="mb-3 text-sm font-semibold text-zinc-400">Alur langkah demi langkah</h2>
+      <div className="stagger mb-8 space-y-5">
+        {modes.map((m) => (
+          <div key={m.id} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <m.icon size={16} className={m.id === 'courier' ? 'text-indigo-400' : m.id === 'lcl' ? 'text-emerald-400' : 'text-amber-400'} />
+              <span className="text-sm font-semibold">{m.title}</span>
+            </div>
+            <ol className="space-y-2">
+              {m.flow.map((step, i) => (
+                <li key={i} className="flex gap-2.5 text-sm text-zinc-300">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-bold text-zinc-400">{i + 1}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+
+      {/* Aturan PEB */}
+      <div className="stagger mb-8 rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4">
+        <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-emerald-300">
+          <Scale size={15} /> Kapan PEB wajib? (aturan: PMK 60/2016)
+        </h2>
+        <ul className="space-y-1.5 text-sm text-emerald-200/90">
+          {pebRule.map((r, i) => (
+            <li key={i} className="flex gap-2">
+              <CheckCircle2 size={15} className="mt-0.5 shrink-0" /> {r}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Dokumen */}
       <h2 className="mb-3 text-sm font-semibold text-zinc-400">Dokumen yang wajib & penting</h2>
       <div className="stagger mb-8 grid gap-2 sm:grid-cols-2">
         {docs.map((d) => (
           <div key={d.code} className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
             <FileText size={15} className="mt-0.5 shrink-0 text-indigo-400" />
             <div>
-              <div className="text-sm font-semibold font-mono">{d.code}</div>
-              <div className="text-xs text-zinc-300">{d.name}</div>
-              <div className="text-[11px] text-zinc-500">{d.ket}</div>
+              <div className="text-sm font-semibold">{d.name} <span className="font-mono text-[10px] text-zinc-500">({d.code})</span></div>
+              <div className="text-[11px] text-zinc-500">{d.need}</div>
+              <p className="mt-1 text-xs text-zinc-400">{d.desc}</p>
             </div>
           </div>
         ))}
       </div>
 
+      {/* Istilah */}
       <h2 className="mb-3 text-sm font-semibold text-zinc-400">Istilah yang perlu dipahami</h2>
       <div className="stagger mb-8 grid gap-2 sm:grid-cols-2">
         {terms.map((t) => (
           <div key={t.t} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
             <div className="text-sm font-semibold text-indigo-300">{t.t}</div>
-            <div className="mt-0.5 text-xs text-zinc-400">{t.d}</div>
+            <p className="mt-0.5 text-xs text-zinc-400">{t.d}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-xs text-zinc-500">
-        <div className="flex gap-2">
-          <Info size={14} className="mt-0.5 shrink-0" />
-          <p>
-            Panduan ini disusun dari standar umum ekspor Indonesia (DJBC, Kementerian Perdagangan, Bank Indonesia) dan
-            disesuaikan untuk kebutuhan logikraf. Untuk kasus spesifik (nilai besar, negara tertentu, barang khusus),
-            konsultasikan dengan PPJK atau konsultan ekspor.
-          </p>
-        </div>
+      {/* Tips */}
+      <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-200">
+        <h2 className="mb-2 flex items-center gap-2 font-semibold">
+          <AlertTriangle size={15} /> Tips ekspor pertama kali
+        </h2>
+        <ul className="list-disc space-y-1.5 pl-5 text-amber-200/90">
+          <li>Mulai dari mode Kurir untuk pesanan kecil — proses tercepat, tanpa PEB, tanpa PPJK</li>
+          <li>Verifikasi HS Code produk ke PPJK/DJBC sebelum kiriman laut pertama</li>
+          <li>Untuk FCL/LCL, siapkan data PEB dari sistem (PEB Data Sheet) dan serahkan ke PPJK — mereka yang submit</li>
+          <li>Pastikan nilai & berat di CI sesuai isi karton — bea cukai negara tujuan cek ini</li>
+          <li>Pakai incoterm DAP/DDP untuk kurir, FOB/CIF untuk kontainer</li>
+        </ul>
       </div>
     </div>
   )

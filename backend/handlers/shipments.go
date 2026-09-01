@@ -18,16 +18,20 @@ type ShipmentHandler struct {
 }
 
 type shipmentReq struct {
-	PEBNo        string  `json:"peb_no"`
-	NPENo        string  `json:"npe_no"`
-	VesselName   string  `json:"vessel_name"`
-	VoyageNo     string  `json:"voyage_no"`
-	StuffingDate *string `json:"stuffing_date"`
-	GateInDate   *string `json:"gate_in_date"`
-	ETD          *string `json:"etd"`
-	OnboardDate  *string `json:"onboard_date"`
-	PODDate      *string `json:"pod_date"`
-	Notes        string  `json:"notes"`
+	PEBNo         string  `json:"peb_no"`
+	NPENo         string  `json:"npe_no"`
+	VesselName    string  `json:"vessel_name"`
+	VoyageNo      string  `json:"voyage_no"`
+	StuffingDate  *string `json:"stuffing_date"`
+	GateInDate    *string `json:"gate_in_date"`
+	ETD           *string `json:"etd"`
+	OnboardDate   *string `json:"onboard_date"`
+	PODDate       *string `json:"pod_date"`
+	Courier       string  `json:"courier"`
+	AWBNo         string  `json:"awb_no"`
+	PickupDate    *string `json:"pickup_date"`
+	DeliveredDate *string `json:"delivered_date"`
+	Notes         string  `json:"notes"`
 }
 
 // Update — upsert data shipment order + auto-advance status.
@@ -83,6 +87,12 @@ func (h *ShipmentHandler) Update(c fiber.Ctx) error {
 	if req.VoyageNo != "" || s.VoyageNo != "" {
 		s.VoyageNo = req.VoyageNo
 	}
+	if req.Courier != "" || s.Courier != "" {
+		s.Courier = req.Courier
+	}
+	if req.AWBNo != "" || s.AWBNo != "" {
+		s.AWBNo = req.AWBNo
+	}
 	if req.Notes != "" || s.Notes != "" {
 		s.Notes = req.Notes
 	}
@@ -95,6 +105,8 @@ func (h *ShipmentHandler) Update(c fiber.Ctx) error {
 		{req.ETD, &s.ETD},
 		{req.OnboardDate, &s.OnboardDate},
 		{req.PODDate, &s.PODDate},
+		{req.PickupDate, &s.PickupDate},
+		{req.DeliveredDate, &s.DeliveredDate},
 	} {
 		if f.src != nil {
 			t, perr := parse(f.src)
@@ -109,12 +121,12 @@ func (h *ShipmentHandler) Update(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan shipment"})
 	}
 
-	// Auto-advance status: POD -> completed; ETD/onboard -> shipped
+	// Auto-advance status (courier: pickup->shipped, delivered->completed; laut: ETD/onboard->shipped, POD->completed)
 	prev := o.Status
 	switch {
-	case s.PODDate != nil && (o.Status == "confirmed" || o.Status == "packed" || o.Status == "shipped"):
+	case (s.DeliveredDate != nil || s.PODDate != nil) && (o.Status == "confirmed" || o.Status == "packed" || o.Status == "shipped"):
 		o.Status = "completed"
-	case (s.ETD != nil || s.OnboardDate != nil) && (o.Status == "confirmed" || o.Status == "packed"):
+	case (s.PickupDate != nil || s.ETD != nil || s.OnboardDate != nil) && (o.Status == "confirmed" || o.Status == "packed"):
 		o.Status = "shipped"
 	}
 	if o.Status != prev {
@@ -129,9 +141,6 @@ func (h *ShipmentHandler) Update(c fiber.Ctx) error {
 	if err := h.DB.Preload("Buyer").Preload("Incoterm").Preload("PortLoading").Preload("PortDischarge").Preload("Items.Product").Preload("Shipment").First(&o, id).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
 	}
-	for j := range o.Items {
-		o.Items[j].LineTotal = o.Items[j].UnitPriceUSD * float64(o.Items[j].Quantity)
-		o.TotalFOB += o.Items[j].LineTotal
-	}
+	computeOrderTotals(&o)
 	return c.JSON(o)
 }

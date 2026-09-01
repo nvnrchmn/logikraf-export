@@ -2,18 +2,25 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Plus, Search, Loader2, Package } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { api } from '../lib/api'
-import type { Buyer, Incoterm, Order, Port } from '../lib/types'
+import type { Buyer, Incoterm, Order, Port, ShippingMode } from '../lib/types'
 import { allStatuses, fmtDate, fmtMoney, statusMeta } from '../lib/status'
 import { Button, EmptyState, Field, Modal, inputCls, SkeletonList } from '../components/UI'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 const emptyForm = {
+  shipping_mode: 'courier' as ShippingMode,
   buyer_id: 0,
   incoterm_id: 0,
   port_loading_id: 0,
   port_discharge_id: 0,
   payment_terms: '',
   notes: '',
+}
+
+const modeMeta: Record<ShippingMode, { label: string; desc: string }> = {
+  courier: { label: 'Kurir / Parcel', desc: 'DHL/FedEx/JNE — kiriman kecil (<$100 / 30kg), tanpa PEB' },
+  lcl: { label: 'LCL', desc: 'Kontainer sebagian — kiriman menengah, PEB via PPJK' },
+  fcl: { label: 'FCL', desc: 'Kontainer penuh — kiriman besar, PEB via PPJK' },
 }
 
 export default function Orders() {
@@ -142,7 +149,13 @@ export default function Orders() {
                 <span className="font-mono text-sm text-zinc-300">{fmtMoney(o.total_fob)}</span>
               </div>
               <div className="mt-1.5 text-xs text-zinc-500">
-                {o.buyer?.company_name} · {o.incoterm?.code} · {o.port_loading?.code} → {o.port_discharge?.code} · {fmtDate(o.created_at)}
+                {o.buyer?.company_name} · {o.incoterm?.code} ·{' '}
+                {o.shipping_mode === 'courier' ? (
+                  <span className="text-indigo-400/80">Kurir</span>
+                ) : (
+                  <>{o.port_loading?.code} → {o.port_discharge?.code}</>
+                )}{' '}
+                · {fmtDate(o.created_at)}
               </div>
             </Link>
           ))}
@@ -159,6 +172,25 @@ export default function Orders() {
               ))}
             </select>
           </Field>
+          <Field label="Mode Pengiriman *">
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.keys(modeMeta) as ShippingMode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, shipping_mode: m, port_loading_id: 0, port_discharge_id: 0 }))}
+                  className={`rounded-lg border px-2 py-2 text-xs font-medium transition ${
+                    form.shipping_mode === m
+                      ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {modeMeta[m].label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] text-zinc-500">{modeMeta[form.shipping_mode].desc}</p>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Incoterm *">
               <select className={inputCls} value={form.incoterm_id} onChange={(e) => set('incoterm_id', Number(e.target.value))} required>
@@ -171,22 +203,26 @@ export default function Orders() {
             <Field label="Mata Uang">
               <input className={inputCls} value="USD" disabled />
             </Field>
-            <Field label="Pelabuhan Muat *">
-              <select className={inputCls} value={form.port_loading_id} onChange={(e) => set('port_loading_id', Number(e.target.value))} required>
-                <option value={0}>— pilih —</option>
-                {ports.map((p) => (
-                  <option key={p.id} value={p.id}>{p.code} — {p.name}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Pelabuhan Bongkar *">
-              <select className={inputCls} value={form.port_discharge_id} onChange={(e) => set('port_discharge_id', Number(e.target.value))} required>
-                <option value={0}>— pilih —</option>
-                {ports.map((p) => (
-                  <option key={p.id} value={p.id}>{p.code} — {p.name}</option>
-                ))}
-              </select>
-            </Field>
+            {form.shipping_mode !== 'courier' && (
+              <>
+                <Field label="Pelabuhan Muat *">
+                  <select className={inputCls} value={form.port_loading_id} onChange={(e) => set('port_loading_id', Number(e.target.value))} required>
+                    <option value={0}>— pilih —</option>
+                    {ports.map((p) => (
+                      <option key={p.id} value={p.id}>{p.code} — {p.name}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Pelabuhan Bongkar *">
+                  <select className={inputCls} value={form.port_discharge_id} onChange={(e) => set('port_discharge_id', Number(e.target.value))} required>
+                    <option value={0}>— pilih —</option>
+                    {ports.map((p) => (
+                      <option key={p.id} value={p.id}>{p.code} — {p.name}</option>
+                    ))}
+                  </select>
+                </Field>
+              </>
+            )}
           </div>
           <Field label="Syarat Pembayaran" hint="mis. T/T 30% deposit, 70% before shipment">
             <input className={inputCls} value={form.payment_terms} onChange={(e) => set('payment_terms', e.target.value)} />

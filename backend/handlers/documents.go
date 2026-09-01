@@ -58,6 +58,9 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 		if !confirmedStatuses[o.Status] {
 			return c.Status(400).JSON(fiber.Map{"error": "dokumen hanya bisa dibuat setelah order confirmed"})
 		}
+		if docType == "SI" && o.ShippingMode == "courier" {
+			return c.Status(400).JSON(fiber.Map{"error": "SI hanya untuk pengiriman laut (LCL/FCL) — mode kurir pakai AWB courier"})
+		}
 	case "PEB":
 		if !packedStatuses[o.Status] {
 			return c.Status(400).JSON(fiber.Map{"error": "PEB Data Sheet hanya bisa dibuat setelah order packed"})

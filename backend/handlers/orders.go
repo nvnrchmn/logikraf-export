@@ -44,22 +44,20 @@ func (h *OrderHandler) List(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
 	}
 	for i := range orders {
-		for j := range orders[i].Items {
-			orders[i].Items[j].LineTotal = orders[i].Items[j].UnitPriceUSD * float64(orders[i].Items[j].Quantity)
-			orders[i].TotalFOB += orders[i].Items[j].LineTotal
-		}
+		computeOrderTotals(&orders[i])
 	}
 	return c.JSON(orders)
 }
 
 type createOrderReq struct {
-	BuyerID          uint   `json:"buyer_id"`
-	IncotermID       uint   `json:"incoterm_id"`
-	PortLoadingID    uint   `json:"port_loading_id"`
-	PortDischargeID  uint   `json:"port_discharge_id"`
-	Currency         string `json:"currency"`
-	PaymentTerms     string `json:"payment_terms"`
-	Notes            string `json:"notes"`
+	ShippingMode    string `json:"shipping_mode"`
+	BuyerID         uint   `json:"buyer_id"`
+	IncotermID      uint   `json:"incoterm_id"`
+	PortLoadingID   uint   `json:"port_loading_id"`
+	PortDischargeID uint   `json:"port_discharge_id"`
+	Currency        string `json:"currency"`
+	PaymentTerms    string `json:"payment_terms"`
+	Notes           string `json:"notes"`
 }
 
 func (h *OrderHandler) Create(c fiber.Ctx) error {
@@ -67,8 +65,21 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "payload tidak valid"})
 	}
-	if req.BuyerID == 0 || req.IncotermID == 0 || req.PortLoadingID == 0 || req.PortDischargeID == 0 {
-		return c.Status(400).JSON(fiber.Map{"error": "buyer, incoterm, dan pelabuhan wajib diisi"})
+	if req.BuyerID == 0 || req.IncotermID == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "buyer dan incoterm wajib diisi"})
+	}
+	if req.ShippingMode == "" {
+		req.ShippingMode = "courier"
+	}
+	if !containsStr([]string{"courier", "lcl", "fcl"}, req.ShippingMode) {
+		return c.Status(400).JSON(fiber.Map{"error": "shipping_mode harus courier, lcl, atau fcl"})
+	}
+	if req.ShippingMode != "courier" && (req.PortLoadingID == 0 || req.PortDischargeID == 0) {
+		return c.Status(400).JSON(fiber.Map{"error": "pelabuhan wajib diisi untuk mode laut (LCL/FCL)"})
+	}
+	if req.ShippingMode == "courier" {
+		req.PortLoadingID = 0
+		req.PortDischargeID = 0
 	}
 	// Validasi referensi sebelum insert (hindari FK error 500)
 	var refs struct {
@@ -76,10 +87,15 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 	}
 	h.DB.Model(&models.Buyer{}).Where("id = ?", req.BuyerID).Count(&refs.Buyer)
 	h.DB.Model(&models.Incoterm{}).Where("id = ?", req.IncotermID).Count(&refs.Incoterm)
-	h.DB.Model(&models.Port{}).Where("id = ?", req.PortLoadingID).Count(&refs.PortL)
-	h.DB.Model(&models.Port{}).Where("id = ?", req.PortDischargeID).Count(&refs.PortD)
-	if refs.Buyer == 0 || refs.Incoterm == 0 || refs.PortL == 0 || refs.PortD == 0 {
-		return c.Status(400).JSON(fiber.Map{"error": "data referensi (buyer/incoterm/pelabuhan) tidak valid"})
+	if refs.Buyer == 0 || refs.Incoterm == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "data referensi (buyer/incoterm) tidak valid"})
+	}
+	if req.ShippingMode != "courier" {
+		h.DB.Model(&models.Port{}).Where("id = ?", req.PortLoadingID).Count(&refs.PortL)
+		h.DB.Model(&models.Port{}).Where("id = ?", req.PortDischargeID).Count(&refs.PortD)
+		if refs.PortL == 0 || refs.PortD == 0 {
+			return c.Status(400).JSON(fiber.Map{"error": "data referensi pelabuhan tidak valid"})
+		}
 	}
 	currency := req.Currency
 	if currency == "" {
@@ -91,12 +107,17 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal membuat nomor pesanan"})
 	}
 
+	var plID, pdID *uint
+	if req.ShippingMode != "courier" {
+		plID, pdID = &req.PortLoadingID, &req.PortDischargeID
+	}
 	o := models.Order{
 		OrderNo:         orderNo,
+		ShippingMode:    req.ShippingMode,
 		BuyerID:         req.BuyerID,
 		IncotermID:      req.IncotermID,
-		PortLoadingID:   req.PortLoadingID,
-		PortDischargeID: req.PortDischargeID,
+		PortLoadingID:   plID,
+		PortDischargeID: pdID,
 		Currency:        currency,
 		PaymentTerms:    req.PaymentTerms,
 		Notes:           req.Notes,
@@ -123,14 +144,28 @@ func (h *OrderHandler) Get(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
 	}
-	for j := range o.Items {
-		o.Items[j].LineTotal = o.Items[j].UnitPriceUSD * float64(o.Items[j].Quantity)
-		o.TotalFOB += o.Items[j].LineTotal
-	}
+	computeOrderTotals(&o)
 	return c.JSON(o)
 }
 
+// computeOrderTotals menghitung LineTotal, FOB, berat, CBM, dan kebutuhan PEB.
+func computeOrderTotals(o *models.Order) {
+	o.TotalFOB, o.TotalNetKG, o.TotalGrossKG, o.TotalCBM = 0, 0, 0, 0
+	for j := range o.Items {
+		it := &o.Items[j]
+		it.LineTotal = it.UnitPriceUSD * float64(it.Quantity)
+		o.TotalFOB += it.LineTotal
+		p := it.Product
+		o.TotalNetKG += p.NetWeightG * float64(it.Quantity) / 1000
+		o.TotalGrossKG += p.GrossWeightG * float64(it.Quantity) / 1000
+		o.TotalCBM += p.LengthCm * p.WidthCm * p.HeightCm * float64(it.Quantity) / 1e6
+	}
+	// PEB wajib kecuali kiriman kurir di bawah ambang USD 100 / 30 kg (PMK 60/2016)
+	o.PEBRequired = !(o.ShippingMode == "courier" && o.TotalFOB < 100 && o.TotalGrossKG < 30)
+}
+
 type updateOrderReq struct {
+	ShippingMode    string `json:"shipping_mode"`
 	IncotermID      uint   `json:"incoterm_id"`
 	PortLoadingID   uint   `json:"port_loading_id"`
 	PortDischargeID uint   `json:"port_discharge_id"`
@@ -153,8 +188,18 @@ func (h *OrderHandler) Update(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "payload tidak valid"})
 	}
 	o.IncotermID = req.IncotermID
-	o.PortLoadingID = req.PortLoadingID
-	o.PortDischargeID = req.PortDischargeID
+	if req.ShippingMode != "" {
+		o.ShippingMode = req.ShippingMode
+	}
+	if o.ShippingMode != "courier" {
+		if req.PortLoadingID == 0 || req.PortDischargeID == 0 {
+			return c.Status(400).JSON(fiber.Map{"error": "pelabuhan wajib diisi untuk mode laut (LCL/FCL)"})
+		}
+		pl, pd := req.PortLoadingID, req.PortDischargeID
+		o.PortLoadingID, o.PortDischargeID = &pl, &pd
+	} else {
+		o.PortLoadingID, o.PortDischargeID = nil, nil
+	}
 	if req.Currency != "" {
 		o.Currency = req.Currency
 	}

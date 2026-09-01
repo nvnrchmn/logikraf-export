@@ -60,22 +60,29 @@ export interface OrderItem {
   product?: Product
 }
 
+export type ShippingMode = 'courier' | 'lcl' | 'fcl'
+
 export interface Order {
   id: number
   order_no: string
+  shipping_mode: ShippingMode
   buyer_id: number
   buyer?: Buyer
   incoterm_id: number
   incoterm?: Incoterm
-  port_loading_id: number
-  port_loading?: Port
-  port_discharge_id: number
-  port_discharge?: Port
+  port_loading_id: number | null
+  port_loading?: Port | null
+  port_discharge_id: number | null
+  port_discharge?: Port | null
   currency: string
   payment_terms: string
   status: OrderStatus
   notes: string
   total_fob: number
+  total_net_kg: number
+  total_gross_kg: number
+  total_cbm: number
+  peb_required: boolean
   items: OrderItem[]
   shipment?: Shipment | null
   created_by: number
@@ -113,6 +120,10 @@ export interface Shipment {
   etd: string | null
   onboard_date: string | null
   pod_date: string | null
+  courier: string
+  awb_no: string
+  pickup_date: string | null
+  delivered_date: string | null
   notes: string
 }
 

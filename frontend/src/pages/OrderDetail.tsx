@@ -48,7 +48,8 @@ export default function OrderDetail() {
   // shipment form
   const emptySh: Shipment = {
     id: 0, order_id: 0, peb_no: '', npe_no: '', vessel_name: '', voyage_no: '',
-    stuffing_date: null, gate_in_date: null, etd: null, onboard_date: null, pod_date: null, notes: '',
+    stuffing_date: null, gate_in_date: null, etd: null, onboard_date: null, pod_date: null,
+    courier: '', awb_no: '', pickup_date: null, delivered_date: null, notes: '',
   }
   const [sh, setSh] = useState<Shipment>(emptySh)
 
@@ -319,49 +320,79 @@ export default function OrderDetail() {
 
       {/* Pengiriman */}
       <div className="mb-5 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-2 flex-wrap">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <Truck size={15} className="text-indigo-400" /> Pengiriman
+            <span className={`rounded-full px-2 py-0.5 text-[10px] ${order.shipping_mode === 'courier' ? 'bg-indigo-600/15 text-indigo-300' : 'bg-emerald-600/15 text-emerald-300'}`}>
+              {order.shipping_mode === 'courier' ? 'Kurir' : order.shipping_mode.toUpperCase()}
+            </span>
           </h2>
-          {!shipLocked && <span className="text-[11px] text-zinc-500">Isi ETD → otomatis shipped · isi POD → otomatis completed</span>}
+          {!shipLocked && (
+            <span className="text-[11px] text-zinc-500">
+              {order.shipping_mode === 'courier' ? 'Isi pickup → shipped · delivered → completed' : 'Isi ETD → shipped · POD → completed'}
+            </span>
+          )}
         </div>
         <form onSubmit={saveShipment} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">PEB No</label>
-            <input className={inputCls} placeholder="e.g. 003456" value={sh.peb_no} disabled={shipLocked} onChange={(e) => setShField('peb_no', e.target.value)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">NPE No</label>
-            <input className={inputCls} placeholder="e.g. 004321" value={sh.npe_no} disabled={shipLocked} onChange={(e) => setShField('npe_no', e.target.value)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">Vessel</label>
-            <input className={inputCls} placeholder="Kapal" value={sh.vessel_name} disabled={shipLocked} onChange={(e) => setShField('vessel_name', e.target.value)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">Voyage</label>
-            <input className={inputCls} placeholder="e.g. 018E" value={sh.voyage_no} disabled={shipLocked} onChange={(e) => setShField('voyage_no', e.target.value)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">Stuffing Date</label>
-            <input type="date" className={inputCls} value={sh.stuffing_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('stuffing_date', e.target.value || null)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">Gate-In Date</label>
-            <input type="date" className={inputCls} value={sh.gate_in_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('gate_in_date', e.target.value || null)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">ETD</label>
-            <input type="date" className={inputCls} value={sh.etd?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('etd', e.target.value || null)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">Onboard Date</label>
-            <input type="date" className={inputCls} value={sh.onboard_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('onboard_date', e.target.value || null)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-500">POD Date</label>
-            <input type="date" className={inputCls} value={sh.pod_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('pod_date', e.target.value || null)} />
-          </div>
+          {order.shipping_mode === 'courier' ? (
+            <>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Kurir</label>
+                <input className={inputCls} placeholder="DHL / FedEx / JNE" value={sh.courier} disabled={shipLocked} onChange={(e) => setShField('courier', e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">No. AWB</label>
+                <input className={inputCls} placeholder="e.g. 1234-5678-9012" value={sh.awb_no} disabled={shipLocked} onChange={(e) => setShField('awb_no', e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Tanggal Pickup</label>
+                <input type="date" className={inputCls} value={sh.pickup_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('pickup_date', e.target.value || null)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Tanggal Diterima (Delivered)</label>
+                <input type="date" className={inputCls} value={sh.delivered_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('delivered_date', e.target.value || null)} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">PEB No</label>
+                <input className={inputCls} placeholder="e.g. 003456" value={sh.peb_no} disabled={shipLocked} onChange={(e) => setShField('peb_no', e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">NPE No</label>
+                <input className={inputCls} placeholder="e.g. 004321" value={sh.npe_no} disabled={shipLocked} onChange={(e) => setShField('npe_no', e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Vessel</label>
+                <input className={inputCls} placeholder="Kapal" value={sh.vessel_name} disabled={shipLocked} onChange={(e) => setShField('vessel_name', e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Voyage</label>
+                <input className={inputCls} placeholder="e.g. 018E" value={sh.voyage_no} disabled={shipLocked} onChange={(e) => setShField('voyage_no', e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Stuffing Date</label>
+                <input type="date" className={inputCls} value={sh.stuffing_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('stuffing_date', e.target.value || null)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Gate-In Date</label>
+                <input type="date" className={inputCls} value={sh.gate_in_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('gate_in_date', e.target.value || null)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">ETD</label>
+                <input type="date" className={inputCls} value={sh.etd?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('etd', e.target.value || null)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">Onboard Date</label>
+                <input type="date" className={inputCls} value={sh.onboard_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('onboard_date', e.target.value || null)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-500">POD Date</label>
+                <input type="date" className={inputCls} value={sh.pod_date?.slice(0, 10) ?? ''} disabled={shipLocked} onChange={(e) => setShField('pod_date', e.target.value || null)} />
+              </div>
+            </>
+          )}
           <div className="sm:col-span-2 lg:col-span-2">
             <label className="mb-1 block text-[11px] text-zinc-500">Catatan Pengiriman</label>
             <input className={inputCls} placeholder="opsional" value={sh.notes} disabled={shipLocked} onChange={(e) => setShField('notes', e.target.value)} />
@@ -407,6 +438,7 @@ export default function OrderDetail() {
         {order.status !== 'cancelled' && (
           <div className="mt-4 flex flex-wrap gap-2">
             {docDefs
+              .filter((d) => !(d.type === 'SI' && order.shipping_mode === 'courier'))
               .filter((d) => level[order.status] >= level[d.min])
               .map((d) => {
                 const exists = docs.some((x) => x.doc_type === d.type)
@@ -416,6 +448,16 @@ export default function OrderDetail() {
                   </Button>
                 );
               })}
+          </div>
+        )}
+        {!order.peb_required && order.status !== 'cancelled' && (
+          <div className="mt-3 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-300">
+            ✓ Mode kurir di bawah ambang PEB (FOB &lt; $100 dan berat &lt; 30 kg) — PEB tidak wajib. Data sheet tetap bisa dibuat sebagai arsip.
+          </div>
+        )}
+        {order.shipping_mode === 'courier' && order.status !== 'cancelled' && (
+          <div className="mt-2 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-[11px] text-zinc-500">
+            SI tidak berlaku untuk mode kurir — gunakan no. AWB courier sebagai referensi pengiriman.
           </div>
         )}
         {order.status === 'cancelled' && (

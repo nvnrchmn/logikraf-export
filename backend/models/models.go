@@ -65,16 +65,18 @@ type Incoterm struct {
 }
 
 // Order status flow: draft → confirmed → packed → shipped → completed | cancelled
+// ShippingMode: courier (parcel/ekspres) | lcl | fcl
 type Order struct {
 	ID              uint      `gorm:"primaryKey" json:"id"`
 	OrderNo         string    `gorm:"uniqueIndex;size:32" json:"order_no"`
+	ShippingMode    string    `gorm:"size:10;default:courier;index" json:"shipping_mode"`
 	BuyerID         uint      `json:"buyer_id"`
 	Buyer           Buyer     `gorm:"foreignKey:BuyerID" json:"buyer"`
 	IncotermID      uint      `json:"incoterm_id"`
 	Incoterm        Incoterm  `gorm:"foreignKey:IncotermID" json:"incoterm"`
-	PortLoadingID   uint      `json:"port_loading_id"`
+	PortLoadingID   *uint     `json:"port_loading_id"`
 	PortLoading     Port      `gorm:"foreignKey:PortLoadingID" json:"port_loading"`
-	PortDischargeID uint      `json:"port_discharge_id"`
+	PortDischargeID *uint     `json:"port_discharge_id"`
 	PortDischarge   Port      `gorm:"foreignKey:PortDischargeID" json:"port_discharge"`
 	Currency        string    `gorm:"size:8;default:USD" json:"currency"`
 	PaymentTerms    string    `gorm:"size:255" json:"payment_terms"`
@@ -84,6 +86,10 @@ type Order struct {
 	Items           []OrderItem `gorm:"foreignKey:OrderID" json:"items"`
 	Shipment        *Shipment   `gorm:"foreignKey:OrderID" json:"shipment,omitempty"`
 	TotalFOB        float64     `gorm:"-" json:"total_fob"`
+	TotalNetKG      float64     `gorm:"-" json:"total_net_kg"`
+	TotalGrossKG    float64     `gorm:"-" json:"total_gross_kg"`
+	TotalCBM        float64     `gorm:"-" json:"total_cbm"`
+	PEBRequired     bool        `gorm:"-" json:"peb_required"`
 	CreatedAt       time.Time   `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
@@ -98,7 +104,7 @@ type OrderItem struct {
 	LineTotal    float64 `gorm:"-" json:"line_total"`
 }
 
-// Shipment — 1:1 dengan Order; field standar aturan, fleksibel dipakai setelah ekspor nyata
+// Shipment — 1:1 dengan Order; field courier untuk mode parcel, field laut untuk LCL/FCL
 type Shipment struct {
 	ID            uint       `gorm:"primaryKey" json:"id"`
 	OrderID       uint       `gorm:"uniqueIndex" json:"order_id"`
@@ -111,6 +117,10 @@ type Shipment struct {
 	ETD           *time.Time `json:"etd"`
 	OnboardDate   *time.Time `json:"onboard_date"`
 	PODDate       *time.Time `json:"pod_date"`
+	Courier       string     `gorm:"size:64" json:"courier"`
+	AWBNo         string     `gorm:"size:64" json:"awb_no"`
+	PickupDate    *time.Time `json:"pickup_date"`
+	DeliveredDate *time.Time `json:"delivered_date"`
 	Notes         string     `json:"notes"`
 }
 
