@@ -30,6 +30,8 @@ const docDefs = [
 
 const level = { draft: 0, confirmed: 1, packed: 2, shipped: 3, completed: 4, cancelled: 99 }
 
+const minLabel = { draft: 'sejak order dibuat', confirmed: 'sejak order dikonfirmasi', packed: 'sejak order di-packing' } as const
+
 export default function OrderDetail() {
   const { id } = useParams()
   const oid = Number(id)
@@ -499,16 +501,30 @@ export default function OrderDetail() {
         )}
 
         {order.status !== 'cancelled' && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {docDefs
               .filter((d) => !(d.type === 'SI' && order.shipping_mode === 'courier'))
               .filter((d) => level[order.status] >= level[d.min])
               .map((d) => {
                 const exists = docs.some((x) => x.doc_type === d.type)
                 return (
-                  <Button key={d.type} variant={exists ? 'ghost' : 'primary'} className="!px-3 !py-1.5 text-xs" disabled={busy} onClick={() => generateDoc(d.type)}>
-                    {exists ? <Pencil size={13} /> : <Plus size={13} />} {exists ? 'Generate ulang' : d.label}
-                  </Button>
+                  <div key={d.type} className="flex flex-col rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <FileText size={14} className="text-indigo-400" />
+                        <span className="text-sm font-medium text-zinc-100">{d.label}</span>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${exists ? 'bg-emerald-500/15 text-emerald-300' : 'bg-zinc-800 text-zinc-500'}`}>
+                        {exists ? '✓ Ada' : 'Belum ada'}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-zinc-500">
+                      {d.type} · {minLabel[d.min]}
+                    </div>
+                    <Button variant={exists ? 'ghost' : 'primary'} className="mt-2 w-full !px-3 !py-1.5 text-xs" disabled={busy} onClick={() => generateDoc(d.type)}>
+                      {exists ? <Pencil size={13} /> : <Plus size={13} />} {exists ? 'Generate ulang' : 'Buat dokumen'}
+                    </Button>
+                  </div>
                 );
               })}
           </div>
