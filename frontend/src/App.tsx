@@ -8,6 +8,7 @@ import Buyers from './pages/Buyers'
 import Orders from './pages/Orders'
 import OrderDetail from './pages/OrderDetail'
 import Guide from './pages/Guide'
+import Users from './pages/Users'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="products" element={<Products />} />
             <Route path="buyers" element={<Buyers />} />
             <Route path="guide" element={<Guide />} />
+            <Route path="users" element={<Users />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

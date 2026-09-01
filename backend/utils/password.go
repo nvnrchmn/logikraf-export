@@ -8,7 +8,7 @@ func HashPassword(password string) (string, error) {
 	return string(b), err
 }
 
-// CheckPassword memverifikasi password terhadap hash.
+// CheckPassword memverifikasi password terhadap bcrypt hash.
 func CheckPassword(hash, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }

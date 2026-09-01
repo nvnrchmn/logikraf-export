@@ -6,6 +6,7 @@ import {
   Boxes,
   Building2,
   BookOpen,
+  Users,
   LogOut,
   Menu,
   X,
@@ -18,6 +19,7 @@ const NAV = [
   { to: '/products', label: 'Produk', icon: Boxes },
   { to: '/buyers', label: 'Buyer', icon: Building2 },
   { to: '/guide', label: 'Panduan Ekspor', icon: BookOpen },
+  { to: '/users', label: 'Pengguna', icon: Users, admin: true },
 ]
 
 export default function Layout() {
@@ -41,7 +43,7 @@ export default function Layout() {
         <div className="text-[11px] text-zinc-500 mt-0.5">Export Management System</div>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV.map(({ to, label, icon: Icon, end }) => (
+        {NAV.filter((n) => !n.admin || user.role === 'admin').map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+
 	"logikraf-export/backend/config"
 	"logikraf-export/backend/middleware"
 	"logikraf-export/backend/models"
@@ -31,11 +33,18 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	}
 
 	var user models.User
-	if err := h.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "email atau password salah"})
+	err := h.DB.Where("email = ?", req.Email).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(401).JSON(fiber.Map{"error": "email atau password salah"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat user"})
+	}
+	if !user.Active {
+		return c.Status(401).JSON(fiber.Map{"error": "akun dinonaktifkan, hubungi admin"})
 	}
 	if !utils.CheckPassword(user.PasswordHash, req.Password) {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "email atau password salah"})
+		return c.Status(401).JSON(fiber.Map{"error": "email atau password salah"})
 	}
 
 	token, err := utils.GenerateToken(h.Cfg.JWTSecret, user.ID, user.Role)

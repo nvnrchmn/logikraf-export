@@ -5,7 +5,8 @@ export interface User {
   id: number
   name: string
   email: string
-  role: 'admin' | 'ops'
+  role: string
+  active: boolean
 }
 
 interface AuthContextValue {

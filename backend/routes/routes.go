@@ -55,6 +55,15 @@ func Setup(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	authed.Put("/orders/:id/items/:itemId", orderH.UpdateItem)
 	authed.Delete("/orders/:id/items/:itemId", orderH.RemoveItem)
 
+	// Users (admin)
+	userH := &handlers.UserHandler{DB: db}
+	usersGrp := authed.Group("/users", middleware.RequireRole("admin"))
+	usersGrp.Get("", userH.List)
+	usersGrp.Post("", userH.Create)
+	usersGrp.Put("/:id/password", userH.ResetPassword)
+	usersGrp.Post("/:id/deactivate", userH.Deactivate)
+	usersGrp.Post("/:id/activate", userH.Activate)
+
 	// Audit (admin)
 	auditH := &handlers.AuditHandler{DB: db}
 	authed.Get("/audit-logs", middleware.RequireRole("admin"), auditH.List)
