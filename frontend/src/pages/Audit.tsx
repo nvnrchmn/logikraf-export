@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ScrollText, Loader2 } from 'lucide-react'
+import { ScrollText } from 'lucide-react'
 import { api } from '../lib/api'
 import Breadcrumbs from '../components/Breadcrumbs'
+import { SkeletonList } from '../components/UI'
 
 export interface AuditLog {
   id: number
@@ -80,11 +81,9 @@ export default function Audit() {
       {error && <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-300">{error}</div>}
 
       {loading ? (
-        <div className="flex justify-center py-20 text-zinc-500">
-          <Loader2 className="w-6 h-6 animate-spin" />
-        </div>
+        <SkeletonList rows={5} />
       ) : (
-        <div className="space-y-2">
+        <div className="stagger space-y-2">
           {filtered.map((l, i) => (
             <div
               key={l.id}

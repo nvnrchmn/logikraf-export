@@ -96,7 +96,7 @@ export default function Guide() {
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-zinc-400">Alur langkah demi langkah</h2>
-      <div className="mb-8 space-y-3">
+      <div className="stagger mb-8 space-y-3">
         {steps.map((s) => (
           <div key={s.title} className="flex gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-600/15 text-indigo-400">
@@ -111,7 +111,7 @@ export default function Guide() {
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-zinc-400">Dokumen yang wajib & penting</h2>
-      <div className="mb-8 grid gap-2 sm:grid-cols-2">
+      <div className="stagger mb-8 grid gap-2 sm:grid-cols-2">
         {docs.map((d) => (
           <div key={d.code} className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
             <FileText size={15} className="mt-0.5 shrink-0 text-indigo-400" />
@@ -125,7 +125,7 @@ export default function Guide() {
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-zinc-400">Istilah yang perlu dipahami</h2>
-      <div className="mb-8 grid gap-2 sm:grid-cols-2">
+      <div className="stagger mb-8 grid gap-2 sm:grid-cols-2">
         {terms.map((t) => (
           <div key={t.t} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
             <div className="text-sm font-semibold text-indigo-300">{t.t}</div>

@@ -106,9 +106,9 @@ export default function Users() {
 
       {error && <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-300">{error}</div>}
 
-      <div className="space-y-3">
+      <div className="stagger space-y-3">
         {users.map((u) => (
-          <div key={u.id} className={`rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 flex items-center gap-3 ${!u.active ? 'opacity-50' : ''}`}>
+          <div key={u.id} className={`card-lift rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 flex items-center gap-3 ${!u.active ? 'opacity-50' : ''}`}>
             <div className="w-10 h-10 rounded-full bg-indigo-600/25 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-300 uppercase">
               {u.name.slice(0, 1)}
             </div>

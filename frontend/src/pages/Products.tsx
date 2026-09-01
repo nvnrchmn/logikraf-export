@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react'
 import { api } from '../lib/api'
 import type { Product } from '../lib/types'
 import Breadcrumbs from '../components/Breadcrumbs'
-import { Button, EmptyState, Field, Modal, inputCls } from '../components/UI'
+import { Button, EmptyState, Field, Modal, inputCls, SkeletonList } from '../components/UI'
 
 const empty: Omit<Product, 'id' | 'created_at' | 'updated_at'> = {
   sku: '',
@@ -126,15 +126,13 @@ export default function Products() {
       {error && <div className="mb-4 rounded-lg bg-red-600/15 px-3 py-2 text-sm text-red-400">{error}</div>}
 
       {loading ? (
-        <div className="flex justify-center py-12 text-zinc-500">
-          <Loader2 className="animate-spin" size={24} />
-        </div>
+        <SkeletonList rows={3} />
       ) : products.length === 0 ? (
         <EmptyState message="Belum ada produk. Klik 'Tambah Produk' untuk mulai." />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="stagger grid gap-3 sm:grid-cols-2">
           {products.map((p) => (
-            <div key={p.id} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+            <div key={p.id} className="card-lift rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="font-mono text-sm font-semibold">{p.sku}</div>

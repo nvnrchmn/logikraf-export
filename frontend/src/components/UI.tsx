@@ -17,11 +17,11 @@ export function Button({
   className?: string
 }) {
   const base =
-    'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed'
-  const styles = {
-    primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
-    ghost: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200',
-    danger: 'bg-red-600/15 hover:bg-red-600/25 text-red-400',
+    'btn-press inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium disabled:opacity-50 disabled:pointer-events-none'
+  const styles: Record<string, string> = {
+    primary: 'bg-indigo-600 text-white hover:bg-indigo-500',
+    ghost: 'border border-zinc-700 text-zinc-300 hover:bg-zinc-800',
+    danger: 'bg-red-600/15 text-red-400 hover:bg-red-600/25',
   }
   return (
     <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${styles[variant]} ${className}`}>
@@ -83,6 +83,26 @@ export function EmptyState({ message }: { message: string }) {
   return (
     <div className="rounded-xl border border-dashed border-zinc-800 py-12 text-center text-sm text-zinc-500">
       {message}
+    </div>
+  )
+}
+
+export function SkeletonList({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="stagger space-y-2">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="skeleton h-16" style={{ animationDelay: `${i * 70}ms` }} />
+      ))}
+    </div>
+  )
+}
+
+export function SkeletonCards({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="skeleton h-24" style={{ animationDelay: `${i * 70}ms` }} />
+      ))}
     </div>
   )
 }

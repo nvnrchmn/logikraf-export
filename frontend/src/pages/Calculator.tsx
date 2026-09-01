@@ -57,7 +57,7 @@ export default function Calculator() {
         </div>
       ) : (
         <div className="grid md:grid-cols-5 gap-4">
-          <div className="md:col-span-3 space-y-3">
+          <div className="md:col-span-3 space-y-3 stagger">
             {lines.map((l, i) => {
               const p = products.find((x) => x.id === l.productId)
               return (

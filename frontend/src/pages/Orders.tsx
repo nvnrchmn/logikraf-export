@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { api } from '../lib/api'
 import type { Buyer, Incoterm, Order, Port } from '../lib/types'
 import { allStatuses, fmtDate, fmtMoney, statusMeta } from '../lib/status'
-import { Button, EmptyState, Field, Modal, inputCls } from '../components/UI'
+import { Button, EmptyState, Field, Modal, inputCls, SkeletonList } from '../components/UI'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 const emptyForm = {
@@ -120,18 +120,16 @@ export default function Orders() {
       {error && <div className="mb-4 rounded-lg bg-red-600/15 px-3 py-2 text-sm text-red-400">{error}</div>}
 
       {loading ? (
-        <div className="flex justify-center py-12 text-zinc-500">
-          <Loader2 className="animate-spin" size={24} />
-        </div>
+        <SkeletonList rows={4} />
       ) : orders.length === 0 ? (
         <EmptyState message="Belum ada pesanan. Klik 'Pesanan Baru' untuk mulai." />
       ) : (
-        <div className="space-y-2">
+        <div className="stagger space-y-2">
           {orders.map((o) => (
             <Link
               key={o.id}
               to={`/orders/${o.id}`}
-              className="block rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 transition hover:border-indigo-700/60"
+              className="card-lift block rounded-xl border border-zinc-800 bg-zinc-900/60 p-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">

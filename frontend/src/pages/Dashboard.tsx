@@ -5,13 +5,13 @@ import {
   Package,
   Ship,
   Layers,
-  Loader2,
   FileText,
   TrendingUp,
 } from 'lucide-react'
 import { api } from '../lib/api'
 import type { DashboardStats } from '../lib/types'
 import { allStatuses, fmtDate, fmtMoney, statusMeta } from '../lib/status'
+import { SkeletonCards } from '../components/UI'
 import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
@@ -30,8 +30,17 @@ export default function Dashboard() {
 
   if (!stats)
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-zinc-500">
-        <Loader2 className="mr-2 animate-spin" size={18} /> Memuat dashboard…
+      <div className="anim-fade-up space-y-6">
+        <div>
+          <div className="skeleton h-7 w-56 mb-2" />
+          <div className="skeleton h-4 w-72" />
+        </div>
+        <SkeletonCards />
+        <div className="skeleton h-10 w-96" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="skeleton h-48" />
+          <div className="skeleton h-48" />
+        </div>
       </div>
     )
 
@@ -50,9 +59,9 @@ export default function Dashboard() {
       </div>
 
       {/* Kartu statistik */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
         {cards.map(({ label, value, icon: Icon, cls }) => (
-          <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+          <div key={label} className="card-lift rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
             <div className={`mb-2 flex items-center gap-1.5 text-[11px] text-zinc-500`}>
               <Icon size={13} className={cls} /> {label}
             </div>
@@ -92,7 +101,7 @@ export default function Dashboard() {
           {stats.active_shipments.length === 0 ? (
             <p className="text-sm text-zinc-600">Belum ada shipment berjalan.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="stagger space-y-2">
               {stats.active_shipments.map((s) => (
                 <Link
                   key={s.id}
@@ -125,7 +134,7 @@ export default function Dashboard() {
           {stats.recent_docs.length === 0 ? (
             <p className="text-sm text-zinc-600">Belum ada dokumen dibuat.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="stagger space-y-2">
               {stats.recent_docs.map((d) => (
                 <div key={d.id} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
                   <div className="min-w-0">
@@ -147,7 +156,7 @@ export default function Dashboard() {
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
           <Package size={15} className="text-emerald-400" /> Pesanan Terbaru
         </h2>
-        <div className="divide-y divide-zinc-800/70">
+        <div className="stagger divide-y divide-zinc-800/70">
           {stats.recent_orders.map((o) => (
             <Link key={o.id} to={`/orders/${o.id}`} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0 hover:text-zinc-200">
               <div className="min-w-0">
