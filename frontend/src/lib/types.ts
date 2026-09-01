@@ -75,6 +75,7 @@ export interface Order {
   payment_terms: string
   status: OrderStatus
   notes: string
+  total_fob: number
   items: OrderItem[]
   created_by: number
   created_at: string
