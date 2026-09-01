@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Plus, Pencil, Trash2, Search, Loader2, Building2 } from 'lucide-react'
 import { api } from '../lib/api'
 import type { Buyer } from '../lib/types'
+import Breadcrumbs from '../components/Breadcrumbs'
 import { Button, EmptyState, Field, Modal, inputCls } from '../components/UI'
 
 const empty: Omit<Buyer, 'id' | 'created_at' | 'updated_at'> = {
@@ -94,7 +95,8 @@ export default function Buyers() {
   const set = (k: keyof typeof empty, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }))
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="anim-fade-up mx-auto max-w-5xl px-4 py-6">
+      <Breadcrumbs items={[{ label: 'Dashboard', to: '/' }, { label: 'Buyer' }]} />
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Buyer</h1>

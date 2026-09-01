@@ -17,6 +17,7 @@ import { api, getToken } from '../lib/api'
 import type { Document, Order, Product, Shipment } from '../lib/types'
 import { fmtMoney, statusFlow, statusMeta } from '../lib/status'
 import { Button, inputCls } from '../components/UI'
+import Breadcrumbs from '../components/Breadcrumbs'
 
 const docDefs = [
   { type: 'PI', label: 'Proforma Invoice', min: 'draft' },
@@ -190,7 +191,14 @@ export default function OrderDetail() {
   const sm = statusMeta[order.status]
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="anim-fade-up mx-auto max-w-5xl px-4 py-6">
+      <Breadcrumbs
+        items={[
+          { label: 'Dashboard', to: '/' },
+          { label: 'Pesanan', to: '/orders' },
+          { label: order.order_no },
+        ]}
+      />
       <button onClick={() => navigate('/orders')} className="mb-4 flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200">
         <ArrowLeft size={15} /> Daftar Pesanan
       </button>

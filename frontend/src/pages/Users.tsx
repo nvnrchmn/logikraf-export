@@ -3,6 +3,7 @@ import { Users as UsersIcon, UserPlus, Loader2, KeyRound, Ban, CheckCircle2 } fr
 import { api } from '../lib/api'
 import type { User } from '../context/AuthContext'
 import { Button, Field, Modal, inputCls } from '../components/UI'
+import Breadcrumbs from '../components/Breadcrumbs'
 
 export default function Users() {
   const [users, setUsers] = useState<User[]>([])
@@ -89,7 +90,8 @@ export default function Users() {
   }
 
   return (
-    <div>
+    <div className="anim-fade-up">
+      <Breadcrumbs items={[{ label: 'Dashboard', to: '/' }, { label: 'Pengguna' }]} />
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">

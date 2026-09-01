@@ -43,7 +43,7 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="anim-fade-up space-y-6">
       <div>
         <h1 className="text-xl font-bold">Halo, {user?.name} 👋</h1>
         <p className="mt-0.5 text-sm text-zinc-500">Ringkasan operasi ekspor logikraf.</p>

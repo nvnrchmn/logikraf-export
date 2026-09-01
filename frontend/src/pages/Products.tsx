@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react'
 import { api } from '../lib/api'
 import type { Product } from '../lib/types'
+import Breadcrumbs from '../components/Breadcrumbs'
 import { Button, EmptyState, Field, Modal, inputCls } from '../components/UI'
 
 const empty: Omit<Product, 'id' | 'created_at' | 'updated_at'> = {
@@ -99,7 +100,8 @@ export default function Products() {
     setForm((f) => ({ ...f, [k]: v }))
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="anim-fade-up mx-auto max-w-5xl px-4 py-6">
+      <Breadcrumbs items={[{ label: 'Dashboard', to: '/' }, { label: 'Produk' }]} />
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Produk</h1>

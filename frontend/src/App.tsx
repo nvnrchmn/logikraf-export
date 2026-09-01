@@ -9,6 +9,8 @@ import Orders from './pages/Orders'
 import OrderDetail from './pages/OrderDetail'
 import Guide from './pages/Guide'
 import Users from './pages/Users'
+import Audit from './pages/Audit'
+import Calculator from './pages/Calculator'
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
             <Route path="buyers" element={<Buyers />} />
             <Route path="guide" element={<Guide />} />
             <Route path="users" element={<Users />} />
+            <Route path="audit" element={<Audit />} />
+            <Route path="calculator" element={<Calculator />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import type { Buyer, Incoterm, Order, Port } from '../lib/types'
 import { allStatuses, fmtDate, fmtMoney, statusMeta } from '../lib/status'
 import { Button, EmptyState, Field, Modal, inputCls } from '../components/UI'
+import Breadcrumbs from '../components/Breadcrumbs'
 
 const emptyForm = {
   buyer_id: 0,
@@ -74,7 +75,8 @@ export default function Orders() {
   const set = (k: keyof typeof emptyForm, v: number | string) => setForm((f) => ({ ...f, [k]: v }))
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="anim-fade-up mx-auto max-w-5xl px-4 py-6">
+      <Breadcrumbs items={[{ label: 'Dashboard', to: '/' }, { label: 'Pesanan' }]} />
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Pesanan</h1>

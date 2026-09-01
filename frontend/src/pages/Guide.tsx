@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   BookOpen,
 } from 'lucide-react'
+import Breadcrumbs from '../components/Breadcrumbs'
 
 const steps = [
   {
@@ -72,7 +73,8 @@ const terms = [
 
 export default function Guide() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
+    <div className="anim-fade-up mx-auto max-w-4xl px-4 py-6">
+      <Breadcrumbs items={[{ label: 'Dashboard', to: '/' }, { label: 'Panduan Ekspor' }]} />
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/15 text-indigo-400">
           <BookOpen size={20} />

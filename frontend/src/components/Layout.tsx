@@ -7,6 +7,8 @@ import {
   Building2,
   BookOpen,
   Users,
+  ScrollText,
+  Calculator,
   LogOut,
   Menu,
   X,
@@ -19,7 +21,9 @@ const NAV = [
   { to: '/products', label: 'Produk', icon: Boxes },
   { to: '/buyers', label: 'Buyer', icon: Building2 },
   { to: '/guide', label: 'Panduan Ekspor', icon: BookOpen },
+  { to: '/calculator', label: 'Kalkulator CBM', icon: Calculator },
   { to: '/users', label: 'Pengguna', icon: Users, admin: true },
+  { to: '/audit', label: 'Audit Log', icon: ScrollText, admin: true },
 ]
 
 export default function Layout() {
@@ -105,8 +109,8 @@ export default function Layout() {
       {/* Drawer mobile */}
       {open && (
         <div className="md:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-72 bg-zinc-900 border-r border-zinc-800 shadow-2xl">
+          <div className="absolute inset-0 bg-black/60 anim-fade" onClick={() => setOpen(false)} />
+          <div className="absolute inset-y-0 left-0 w-72 bg-zinc-900 border-r border-zinc-800 shadow-2xl anim-slide-right">
             <button
               onClick={() => setOpen(false)}
               className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200"

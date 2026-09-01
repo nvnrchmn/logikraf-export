@@ -133,10 +133,11 @@ type DocSequence struct {
 	LastNo uint
 }
 
-// AuditLog — jejak perubahan (light)
+// AuditLog — jejak perubahan ringan
 type AuditLog struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	UserID    uint      `json:"user_id"`
+	User      User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	Action    string    `gorm:"size:32" json:"action"`
 	Entity    string    `gorm:"size:32" json:"entity"`
 	EntityID  string    `gorm:"size:32" json:"entity_id"`
