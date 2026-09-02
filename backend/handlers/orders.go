@@ -159,8 +159,11 @@ func computeOrderTotals(o *models.Order) {
 		o.TotalGrossKG += p.GrossWeightG * float64(it.Quantity) / 1000
 		o.TotalCBM += p.LengthCm * p.WidthCm * p.HeightCm * float64(it.Quantity) / 1e6
 	}
-	// PEB wajib kecuali kiriman kurir di bawah ambang USD 100 / 30 kg (PMK 60/2016)
-	o.PEBRequired = !(o.ShippingMode == "courier" && o.TotalFOB < 100 && o.TotalGrossKG < 30)
+	// PEB Single hanya wajib untuk kiriman ≥ 30 kg. Di bawah itu eksportir tidak pernah
+	// menyampaikan PEB: parcel kecil bebas PEB (PMK 60/2016), parcel kurir lain sampai
+	// 30 kg ditampung PEB Konsol oleh ekspedisi. Ambang nilai FOB USD 100 hanya
+	// membedakan "bebas total" vs "PEB Konsol" — dua-duanya nol kewajiban bagi eksportir.
+	o.PEBRequired = !(o.ShippingMode == "courier" && o.TotalGrossKG < 30)
 }
 
 // fullOrder memuat order lengkap dengan relasi (Buyer, Incoterm, pelabuhan, items+produk, shipment)

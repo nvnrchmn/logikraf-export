@@ -101,7 +101,7 @@ const pebRule = [
   'Kiriman ≤ 30 kg via kurir → PEB Single TIDAK diperlukan Logikraf: parcel kecil (nilai di bawah ambang) bebas PEB — PMK 60/2016; parcel lain sampai 30 kg ditampung PEB Konsol oleh ekspedisi. Tidak perlu buka CEISA.',
   'Kiriman > 30 kg → PEB Single WAJIB atas nama Logikraf. Dua jalur: (a) submit sendiri di CEISA 4.0 — registrasi perusahaan sudah dibuat, atau (b) serahkan ke PPJK — mereka submit sebagai kuasa.',
   'Jangan pecah kiriman besar jadi parcel-parcel kecil demi menghindari PEB — DJBC bisa menggabungkan kiriman terpecah ke penerima yang sama.',
-  'Ambang & mekanisme PEB Konsol dapat berubah — konfirmasi angka pasti ke kurir/PPJK. Badge otomatis di order memakai aturan konservatif (nilai & berat); kalau ragu, tanya kurir dulu.',
+  'Ambang & mekanisme PEB Konsol dapat berubah — konfirmasi angka pasti ke kurir/PPJK. Badge di order otomatis: kurir ≤ 30 kg → PEB tidak wajib; ≥ 30 kg atau LCL/FCL → PEB wajib.',
 ]
 
 // ===== Istilah =====

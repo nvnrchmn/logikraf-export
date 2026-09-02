@@ -18,7 +18,7 @@ const emptyForm = {
 }
 
 const modeMeta: Record<ShippingMode, { label: string; desc: string }> = {
-  courier: { label: 'Kurir / Parcel', desc: 'DHL/FedEx/JNE — kiriman kecil (<$100 / 30kg), tanpa PEB' },
+  courier: { label: 'Kurir / Parcel', desc: 'DHL/FedEx/JNE — kiriman kecil (≤ 30 kg), tanpa PEB' },
   lcl: { label: 'LCL', desc: 'Kontainer sebagian — kiriman menengah, PEB via PPJK' },
   fcl: { label: 'FCL', desc: 'Kontainer penuh — kiriman besar, PEB via PPJK' },
 }

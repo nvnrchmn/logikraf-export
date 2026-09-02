@@ -585,7 +585,7 @@ export default function OrderDetail() {
         )}
         {!order.peb_required && order.status !== 'cancelled' && (
           <div className="mt-3 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-300">
-            ✓ Mode kurir di bawah ambang PEB (FOB &lt; $100 dan berat &lt; 30 kg) — PEB tidak wajib. Data sheet tetap bisa dibuat sebagai arsip.
+            ✓ Mode kurir ≤ 30 kg — PEB tidak wajib (nilai berapa pun; ekspedisi yang urus PEB Konsol kalau perlu). Data sheet tetap bisa dibuat sebagai arsip.
           </div>
         )}
         {order.shipping_mode === 'courier' && order.status !== 'cancelled' && (
