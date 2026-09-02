@@ -92,35 +92,39 @@ func fontPath(style string) string {
 
 // ---------- Blok UI ----------
 
-// letterhead — kop surat resmi: logo kiri, teks tengah (nama, alamat, kontak,
-// NIB/NPWP), lalu garis kop ganda. Dipakai semua dokumen.
-func letterhead(pdf *fpdf.Fpdf, c models.CompanySetting) {
-	hasLogo := drawLogo(pdf, c) > 0
-	// blok teks: dengan logo → x=60..195; tanpa logo → full 15..195
-	leftX, leftW := 15.0, 180.0
-	if hasLogo {
-		leftX, leftW = 60.0, 135.0
+// header — kop invoice klasik: logo kiri, blok perusahaan kiri (nama, alamat,
+// kontak, NIB/NPWP), judul dokumen + No./Date rata kanan, garis pemisah tipis.
+func header(pdf *fpdf.Fpdf, d DocData, title string) {
+	c := d.Company
+	// kolom kiri: dengan logo → x=62 (133mm); tanpa logo → x=15 (90mm)
+	leftX, leftW := 15.0, 90.0
+	if drawLogo(pdf, c) > 0 {
+		leftX, leftW = 62.0, 133.0
 	}
 	y := pdf.GetY()
 
-	// Baris 1: nama perusahaan (tengah)
-	pdf.SetFont("DVS-B", "", 13.5)
+	// Baris 1: nama perusahaan (kiri) + judul dokumen (kanan)
+	pdf.SetFont("DVS-B", "", 13)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.SetXY(leftX, y)
-	pdf.MultiCell(leftW, 8, c.CompanyName, "", "C", false)
-	y = pdf.GetY()
+	pdf.MultiCell(leftW, 8, c.CompanyName, "", "L", false)
+	pdf.SetFont("DVS-B", "", 12)
+	pdf.SetXY(leftX, y)
+	pdf.CellFormat(leftW, 8, title, "", 1, "R", false, 0, "")
 
-	// baris 2: alamat (hindari duplikat: Address/ City/ Country yang sudah terkandung)
+	// Baris 2: alamat (kiri) + nomor dokumen (kanan)
+	pdf.SetFont("DVS", "", 8.5)
+	pdf.SetTextColor(71, 85, 105)
 	addr := dedupeAddr(c.Address, c.City, c.Country)
 	if addr != "" {
-		pdf.SetFont("DVS", "", 8.5)
-		pdf.SetTextColor(71, 85, 105)
-		pdf.SetXY(leftX, y)
-		pdf.MultiCell(leftW, 5, addr, "", "C", false)
 		y = pdf.GetY()
+		pdf.SetXY(leftX, y)
+		pdf.MultiCell(leftW, 5, addr, "", "L", false)
+		pdf.SetXY(leftX, y)
+		pdf.CellFormat(leftW, 5, "No. "+d.DocNo, "", 1, "R", false, 0, "")
 	}
 
-	// Baris 3: kontak (email | telp | website)
+	// Baris 3: kontak (kiri) + tanggal (kanan)
 	contact := strings.TrimSpace(c.Email)
 	if c.Phone != "" {
 		contact = strings.TrimSpace(contact + "  |  " + c.Phone)
@@ -129,14 +133,17 @@ func letterhead(pdf *fpdf.Fpdf, c models.CompanySetting) {
 		contact = strings.TrimSpace(contact + "  |  " + c.Website)
 	}
 	if contact != "" {
-		pdf.SetFont("DVS", "", 8)
-		pdf.SetTextColor(100, 116, 139)
-		pdf.SetXY(leftX, y)
-		pdf.MultiCell(leftW, 5, contact, "", "C", false)
 		y = pdf.GetY()
+		pdf.SetXY(leftX, y)
+		pdf.MultiCell(leftW, 5, contact, "", "L", false)
+		pdf.SetXY(leftX, y)
+		pdf.CellFormat(leftW, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
+	} else {
+		pdf.CellFormat(leftW, 5, "", "", 0, "L", false, 0, "")
+		pdf.CellFormat(leftW, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
 	}
 
-	// Baris 4: identitas pajak — NIB/NPWP (kop lengkap seperti surat resmi)
+	// Baris 4: identitas pajak NIB/NPWP (full width, muat 1 baris)
 	if c.NIB != "" || c.NPWP != "" {
 		var ids []string
 		if c.NIB != "" {
@@ -147,32 +154,18 @@ func letterhead(pdf *fpdf.Fpdf, c models.CompanySetting) {
 		}
 		pdf.SetFont("DVS", "", 7.5)
 		pdf.SetTextColor(120, 130, 145)
-		pdf.SetXY(leftX, y)
-		pdf.MultiCell(leftW, 4.5, strings.Join(ids, "   |   "), "", "C", false)
+		pdf.SetX(leftX)
+		pdf.MultiCell(leftW, 4.5, strings.Join(ids, "   |   "), "", "L", false)
 	}
 
-	// Garis kop ganda (tebal + tipis) seperti kop surat resmi
-	y = pdf.GetY() + 2
-	pdf.SetFillColor(15, 23, 42)
-	pdf.Rect(15, y, 180, 0.9, "F")
-	pdf.SetFillColor(100, 116, 139)
-	pdf.Rect(15, y+2.4, 180, 0.3, "F")
-	pdf.SetY(y + 2.4 + 0.3 + 3)
+	// Garis pemisah tipis (bukan kop ganda) — 4mm di bawah blok header
+	yg := pdf.GetY() + 4
+	pdf.SetDrawColor(148, 163, 184)
+	pdf.SetLineWidth(0.3)
+	pdf.Line(15, yg, 195, yg)
+	pdf.SetLineWidth(0.2)
+	pdf.SetY(yg + 4)
 	pdf.SetTextColor(0, 0, 0)
-}
-
-func header(pdf *fpdf.Fpdf, d DocData, title string) {
-	letterhead(pdf, d.Company)
-	// Judul dokumen (tengah) + No./Date (kiri/kanan) — konten surat
-	pdf.SetFont("DVS-B", "", 12.5)
-	pdf.SetTextColor(15, 23, 42)
-	pdf.CellFormat(0, 8, title, "", 1, "C", false, 0, "")
-	pdf.SetFont("DVS", "", 8.5)
-	pdf.SetTextColor(100, 116, 139)
-	pdf.CellFormat(90, 5, "No. "+d.DocNo, "", 0, "L", false, 0, "")
-	pdf.CellFormat(90, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
-	pdf.SetTextColor(0, 0, 0)
-	pdf.Ln(2)
 }
 
 func buyerBlock(pdf *fpdf.Fpdf, o models.Order) {
@@ -415,16 +408,8 @@ func signatureBlock(pdf *fpdf.Fpdf, d DocData) {
 
 func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 	o := d.Order
-	letterhead(pdf, d.Company)
-	pdf.SetFont("DVS-B", "", 12.5)
-	pdf.SetTextColor(15, 23, 42)
-	pdf.CellFormat(0, 8, "PEB DATA SHEET", "", 1, "C", false, 0, "")
-	pdf.SetFont("DVS", "", 8)
-	pdf.SetTextColor(100, 116, 139)
-	pdf.CellFormat(90, 5, "Order: "+o.OrderNo, "", 0, "L", false, 0, "")
-	pdf.CellFormat(90, 5, "Tanggal: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
-	pdf.SetTextColor(0, 0, 0)
-	pdf.Ln(3)
+	header(pdf, d, "PEB DATA SHEET")
+	pdf.Ln(2)
 
 	eksportir := d.Company.CompanyName + " — " + strings.TrimSpace(d.Company.Address+", "+d.Company.City)
 	if d.Company.NIB != "" {
@@ -434,6 +419,7 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 		eksportir += " | Tax ID (NPWP): " + d.Company.NPWP
 	}
 	rows := [][2]string{
+		{"Order", o.OrderNo},
 		{"Eksportir", eksportir},
 		{"Consignee / Buyer", o.Buyer.CompanyName + " — " + o.Buyer.City + ", " + o.Buyer.Country},
 		{"Incoterm", o.Incoterm.Code + " — " + o.Incoterm.Description},
