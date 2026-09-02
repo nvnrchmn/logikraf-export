@@ -57,6 +57,7 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 ## Log 2026-09-02
 - fix(order-detail) 8f66709: blank screen React error #310 — useEffect payNote di bawah early return if(!order) → hook count berubah antar render; pindah ke atas; verified headless: DETAIL len 1338, no page errors
 - fix(guide) Guide kurir-first: keputusan jalur berbasis berat — ≤30 kg → KURIR tanpa PEB/CEISA (bebas PEB PMK 60/2016 / PEB Konsol ekspedisi), >30 kg → PEB Single (CEISA 4.0 mandiri, registrasi company @logikraf.id selesai, atau PPJK kuasa), FCL → forwarder. Jangan pecah kiriman (DJBC gabungkan). Docs/istilah/tips disesuaikan; kartu Kurir diberi ribbon "Jalur utama". Verifikasi: tsc+vite build ok, review ponytail manual (CLI tak terpasang di mesin) tanpa temuan.
+- fix(order-detail) update status pembayaran → blank hitam: UpdatePayment backend (orders.go:277) return order tanpa preload relasi (`First` + `c.JSON(o)` → items/buyer null); savePayment frontend pakai `setOrder(updated)` dari respons sparse itu → crash `order.items.length` (null). Fix: samakan pola handler lain — PUT lalu `await load()`. Plus ErrorBoundary (components/ErrorBoundary.tsx) di App.tsx: error render kini tampilkan fallback + tombol Coba lagi/Ke Dashboard, bukan layar hitam. Verifikasi: tsc+vite build ok.
 
 ## Operasional
 - CI: `.github/workflows/deploy.yml` — push main → build → rsync (sudo) → restart systemd

@@ -233,8 +233,8 @@ export default function OrderDetail() {
     setBusy(true)
     setError('')
     try {
-      const updated = await api<Order>(`/orders/${oid}/payment`, { method: 'PUT', body: { status: s, note: payNote } })
-      setOrder(updated)
+      await api(`/orders/${oid}/payment`, { method: 'PUT', body: { status: s, note: payNote } })
+      await load()
     } catch (err) {
       setError((err as Error).message)
     } finally {
