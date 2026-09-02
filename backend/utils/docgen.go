@@ -393,8 +393,8 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 	}
 	pdf.Ln(3)
 
-	// Tabel item dengan kolom PEB: HS Code, Uraian, Jumlah, Nilai FOB, Neto, Kotor
-	widths := []float64{22, 52, 18, 25, 22, 22}
+	// Tabel item dengan kolom PEB: HS Code, Uraian, Jumlah, Nilai FOB, Neto, Kotor (full width 180mm)
+	widths := []float64{20, 56, 16, 30, 28, 30}
 	headers := []string{"HS Code", "Uraian Barang", "Jumlah", "Nilai FOB (USD)", "Berat Neto (kg)", "Berat Kotor (kg)"}
 	pdf.SetFont("DVS-B", "", 8)
 	pdf.SetFillColor(226, 232, 240)
@@ -415,14 +415,20 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 		fobTotal += fob
 		cells := []string{
 			it.Product.HSCode,
-			truncate(it.Product.Name, 40),
+			truncate(it.Product.Name, 34),
 			fmt.Sprintf("%d pcs", it.Quantity),
 			formatMoney(fob),
 			formatWeight(net),
 			formatWeight(gross),
 		}
 		for i, v := range cells {
-			pdf.CellFormat(widths[i], 6, v, "1", 0, "C", false, 0, "")
+			align := "C"
+			if i == 1 {
+				align = "L" // uraian barang rata kiri
+			} else if i == 3 {
+				align = "R" // nilai uang rata kanan
+			}
+			pdf.CellFormat(widths[i], 6, v, "1", 0, align, false, 0, "")
 		}
 		pdf.Ln(-1)
 	}

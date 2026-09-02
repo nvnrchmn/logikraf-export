@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/go-pdf/fpdf"
 	"logikraf-export/backend/models"
 )
 
@@ -132,6 +133,22 @@ func TestMoneyInWords(t *testing.T) {
 	for _, c := range cases {
 		if got := moneyInWords(c.in, "USD"); got != c.want {
 			t.Errorf("moneyInWords(%v) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+// TestPEBHeaderFits — header tabel PEB harus muat di lebar kolomnya (anti-terpotong).
+func TestPEBHeaderFits(t *testing.T) {
+	os.Chdir("..")
+	defer os.Chdir("utils")
+	pdf := fpdf.New("P", "mm", "A4", "")
+	pdf.AddUTF8Font("DVS-B", "", fontPath("B"))
+	pdf.SetFont("DVS-B", "", 8)
+	widths := []float64{20, 56, 16, 30, 28, 30}
+	headers := []string{"HS Code", "Uraian Barang", "Jumlah", "Nilai FOB (USD)", "Berat Neto (kg)", "Berat Kotor (kg)"}
+	for i, h := range headers {
+		if w := pdf.GetStringWidth(h); w > widths[i] {
+			t.Errorf("header %q selebar %.2fmm > kolom %.1fmm — akan terpotong", h, w, widths[i])
 		}
 	}
 }
