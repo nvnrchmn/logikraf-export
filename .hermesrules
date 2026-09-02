@@ -44,6 +44,7 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 - [x] **INSIDEN DEPLOY 2026-09-02 TERATASI**: proses lama "backend" (binary lama jalan manual) sita port 8091 → systemd logikraf-export-server crash-loop 556× (bind: address already in use) → SEMUA deploy backend sejak dfb0a14 tidak berefek walau CI hijau. Fix: `sudo kill <pid>` + `systemctl restart` + drop-in `/etc/systemd/system/logikraf-export-server.service.d/workdir.conf` (WorkingDirectory=/www/wwwroot/export.logikraf.id/backend). Gejala terulang di project lain: cek `ss -tlnp` saat deploy tak berefek.
 - [x] **fix(main) chdir cerdas + signature toleran**: cari project root berbasis assets/ (naik dari bin/), signature file hilang ≠ gagal render (os.Stat). Catatan: storage/signatures/ kosong di server — upload ulang tanda tangan di halaman Pengaturan
 - [x] **Struktur invoice + finishing SELESAI + VERIFIED**: terbilang 'SAY: ... USD AND XX/100' di PI/CI (number-to-words manual + unit test), 'Country of Origin' dari profil perusahaan (default Indonesia), footer 'E.&O.E.' di semua dokumen non-PEB
+- [x] **fix PEB full width SELESAI + VERIFIED**: tabel PEB 180mm (sebelumnya 161mm), header 'Berat Kotor (kg)' dll diukur via GetStringWidth (TestPEBHeaderFits) — tak ada lagi header terpotong; uraian rata kiri, nilai FOB rata kanan
 - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional
