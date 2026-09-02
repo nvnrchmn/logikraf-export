@@ -182,18 +182,49 @@ func buyerBlock(pdf *fpdf.Fpdf, o models.Order) {
 	pdf.Ln(3)
 }
 
+// incotermEN — nama resmi Incoterms 2020 (dokumen bahasa Inggris; DB menyimpan deskripsi
+// dwibahasa untuk UI Indonesia, jadi di PDF dipetakan ulang ke istilah resmi).
+var incotermEN = map[string]string{
+	"EXW": "Ex Works",
+	"FCA": "Free Carrier",
+	"FAS": "Free Alongside Ship",
+	"FOB": "Free on Board",
+	"CFR": "Cost and Freight",
+	"CIF": "Cost, Insurance and Freight",
+	"CPT": "Carriage Paid To",
+	"CIP": "Carriage and Insurance Paid To",
+	"DAP": "Delivered at Place",
+	"DPU": "Delivered at Place Unloaded",
+	"DDP": "Delivered Duty Paid",
+}
+
 func termsBlock(pdf *fpdf.Fpdf, o models.Order) {
+	incDesc, ok := incotermEN[o.Incoterm.Code]
+	if !ok {
+		incDesc = o.Incoterm.Description
+	}
 	terms := [][2]string{
-		{"Incoterm", o.Incoterm.Code + " — " + o.Incoterm.Description},
+		{"Incoterm", o.Incoterm.Code + " — " + incDesc},
 		{"Payment Terms", o.PaymentTerms},
 	}
 	if o.ShippingMode == "courier" {
-		terms = append(terms, [2]string{"Shipping", "Courier / parcel ekspres (AWB)"})
+		terms = append(terms, [2]string{"Shipping", "Courier (express parcel) — tracking via AWB"})
 	} else {
-		terms = append([][2]string{
+		shp := ""
+		switch o.ShippingMode {
+		case "lcl":
+			shp = "Sea freight — LCL (Less than Container Load)"
+		case "fcl":
+			shp = "Sea freight — FCL (Full Container Load)"
+		}
+		sea := [][2]string{
 			{"Port of Loading", o.PortLoading.Name + " (" + o.PortLoading.Code + ")"},
 			{"Port of Discharge", o.PortDischarge.Name + " (" + o.PortDischarge.Code + ")"},
-		}, terms...)
+		}
+		if shp != "" {
+			sea = append(sea, [2]string{"Shipping", shp})
+		}
+		terms = append(sea, terms...)
 	}
 	for _, t := range terms {
 		pdf.SetFont("DVS", "", 8)
