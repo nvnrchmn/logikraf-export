@@ -163,3 +163,20 @@ func TestPEBHeaderFits(t *testing.T) {
 		}
 	}
 }
+
+func TestDedupeAddr(t *testing.T) {
+	cases := []struct {
+		in   [3]string
+		want string
+	}{
+		{[3]string{"Bekasi, Indonesia", "", "Indonesia"}, "Bekasi, Indonesia"},
+		{[3]string{"Jl. A No. 1", "Jakarta", "Indonesia"}, "Jl. A No. 1, Jakarta, Indonesia"},
+		{[3]string{"", "", "Indonesia"}, "Indonesia"},
+		{[3]string{"Jl. B", "Jakarta, Indonesia", ""}, "Jl. B, Jakarta, Indonesia"},
+	}
+	for _, c := range cases {
+		if got := dedupeAddr(c.in[0], c.in[1], c.in[2]); got != c.want {
+			t.Errorf("dedupeAddr(%q,%q,%q) = %q, want %q", c.in[0], c.in[1], c.in[2], got, c.want)
+		}
+	}
+}

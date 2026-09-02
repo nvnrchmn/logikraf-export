@@ -110,8 +110,8 @@ func letterhead(pdf *fpdf.Fpdf, c models.CompanySetting) {
 	pdf.MultiCell(leftW, 8, c.CompanyName, "", "C", false)
 	y = pdf.GetY()
 
-	// Baris 2: alamat
-	addr := strings.TrimSpace(c.Address + ", " + c.City + ", " + c.Country)
+	// baris 2: alamat (hindari duplikat: Address/ City/ Country yang sudah terkandung)
+	addr := dedupeAddr(c.Address, c.City, c.Country)
 	if addr != "" {
 		pdf.SetFont("DVS", "", 8.5)
 		pdf.SetTextColor(71, 85, 105)
@@ -513,6 +513,18 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 		"Catatan: Dokumen ini adalah rangkuman data untuk penyusunan PEB (Pemberitahuan Ekspor Barang). "+
 			"Verifikasi HS Code & nilai FOB dengan PPJK/DJBC sebelum disubmit ke CEISA. "+
 			"Nomor PEB/NPE diisi setelah ada konfirmasi dari PPJK atau sistem CEISA.", "", "L", false)
+}
+
+// dedupeAddr — gabung address/city/country tanpa duplikat elemen yang sudah ada.
+func dedupeAddr(address, city, country string) string {
+	addr := strings.TrimSpace(address)
+	if city != "" && !strings.Contains(strings.ToLower(addr), strings.ToLower(city)) {
+		addr = strings.TrimSpace(addr + ", " + city)
+	}
+	if country != "" && !strings.Contains(strings.ToLower(addr), strings.ToLower(country)) {
+		addr = strings.TrimSpace(addr + ", " + country)
+	}
+	return addr
 }
 
 // ---------- Helper ----------
