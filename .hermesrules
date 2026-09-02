@@ -51,6 +51,7 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 - [x] **REVISI: format invoice klasik (bukan kop surat) SELESAI + VERIFIED live (998b390)**: user nilai kop surat kurang rapi → ganti: logo kiri + nama/alamat/kontak/NIB di kolom kiri (x=62..195), judul dokumen + No./Date rata kanan sebaris, garis pemisah tipis 4mm di bawah blok (bukan kop ganda); PEB pakai header sama + baris Order di info blok; verified: garis 41.4mm tak memotong, urutan teks per baris benar
 - [x] **Dashboard: Dokumen Terbaru bisa diklik (48ccb5b)**: recent_docs + order_id di API, item jadi Link → /orders/:id + hover (konsisten dgn Pesanan Terbaru); verified live order_id=14 dll
 - [x] **Logo dihapus total (15b50e8)**: user nilai tidak perlu → hapus render di docgen + handler/route/model backend + card upload di Pengaturan; fix ikutan: kontak ' | ' 1 baris, NIB/NPWP full width 1 baris; verified live PI-202609-0027: 0px logo, 4 baris header rapi
+- [x] **Header 2 kolom ala Maroto (84670b3)**: user kasih contoh props layout → gofpdf: kiri 7/12 (105mm) nama bold 12 / alamat 8 / kontak 8 / NIB-NPWP 7 abu (Top 0/5/9/13), kanan 5/12 (75mm) judul bold 14 / No: 9 / Date: 9 rata kanan (Top 0/6/10), garis hitam 0.5mm y+20; kontak email|phone (tanpa website); verified live PI-202609-0028
  - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional
