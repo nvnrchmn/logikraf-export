@@ -82,6 +82,7 @@ func (h *DashboardHandler) Stats(c fiber.Ctx) error {
 		ID        uint   `json:"id"`
 		DocNo     string `json:"doc_no"`
 		DocType   string `json:"doc_type"`
+		OrderID   uint   `json:"order_id"`
 		OrderNo   string `json:"order_no"`
 		CreatedAt string `json:"created_at"`
 	}
@@ -91,7 +92,7 @@ func (h *DashboardHandler) Stats(c fiber.Ctx) error {
 		if d.Order.OrderNo != "" {
 			orderNo = d.Order.OrderNo
 		}
-		docs = append(docs, docItem{d.ID, d.DocNo, d.DocType, orderNo, d.CreatedAt.Format("2006-01-02 15:04")})
+		docs = append(docs, docItem{d.ID, d.DocNo, d.DocType, d.OrderID, orderNo, d.CreatedAt.Format("2006-01-02 15:04")})
 	}
 
 	type ordItem struct {

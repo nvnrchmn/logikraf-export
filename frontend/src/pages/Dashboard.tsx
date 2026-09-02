@@ -136,7 +136,7 @@ export default function Dashboard() {
           ) : (
             <div className="stagger space-y-2">
               {stats.recent_docs.map((d) => (
-                <div key={d.id} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+                <Link key={d.id} to={`/orders/${d.order_id}`} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2.5 hover:border-zinc-700 hover:bg-zinc-800/60">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium">{d.doc_no}</div>
                     <div className="truncate text-[11px] text-zinc-500">
@@ -144,7 +144,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <span className="shrink-0 text-[11px] text-zinc-500">{d.created_at}</span>
-                </div>
+                </Link>
               ))}
             </div>
           )}

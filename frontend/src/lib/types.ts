@@ -122,7 +122,7 @@ export interface DashboardStats {
     vessel: string
     total_fob: number
   }[]
-  recent_docs: { id: number; doc_no: string; doc_type: string; order_no: string; created_at: string }[]
+  recent_docs: { id: number; doc_no: string; doc_type: string; order_id: number; order_no: string; created_at: string }[]
   recent_orders: { id: number; order_no: string; buyer_name: string; status: OrderStatus; total_fob: number; created_at: string }[]
 }
 
