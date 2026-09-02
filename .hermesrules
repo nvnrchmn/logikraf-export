@@ -56,6 +56,7 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 
 ## Log 2026-09-02
 - fix(order-detail) 8f66709: blank screen React error #310 — useEffect payNote di bawah early return if(!order) → hook count berubah antar render; pindah ke atas; verified headless: DETAIL len 1338, no page errors
+- fix(guide) Guide kurir-first: keputusan jalur berbasis berat — ≤30 kg → KURIR tanpa PEB/CEISA (bebas PEB PMK 60/2016 / PEB Konsol ekspedisi), >30 kg → PEB Single (CEISA 4.0 mandiri, registrasi company @logikraf.id selesai, atau PPJK kuasa), FCL → forwarder. Jangan pecah kiriman (DJBC gabungkan). Docs/istilah/tips disesuaikan; kartu Kurir diberi ribbon "Jalur utama". Verifikasi: tsc+vite build ok, review ponytail manual (CLI tak terpasang di mesin) tanpa temuan.
 
 ## Operasional
 - CI: `.github/workflows/deploy.yml` — push main → build → rsync (sudo) → restart systemd
