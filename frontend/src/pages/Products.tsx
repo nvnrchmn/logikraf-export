@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react'
 import { api } from '../lib/api'
 import type { Product } from '../lib/types'
 import Breadcrumbs from '../components/Breadcrumbs'
-import { Button, EmptyState, Field, Modal, inputCls, SkeletonList } from '../components/UI'
+import { Button, EmptyState, Field, Modal, inputCls, SkeletonList, ConfirmDialog } from '../components/UI'
 import { toast } from '../components/Toast'
 
 const empty: Omit<Product, 'id' | 'created_at' | 'updated_at'> = {
@@ -22,6 +22,7 @@ const empty: Omit<Product, 'id' | 'created_at' | 'updated_at'> = {
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([])
+  const [delP, setDelP] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
@@ -92,9 +93,10 @@ export default function Products() {
     }
   }
 
-  const remove = async (p: Product) => {
-    if (!confirm(`Hapus produk ${p.sku}?`)) return
-    await api(`/products/${p.id}`, { method: 'DELETE' })
+  const remove = async () => {
+    if (!delP) return
+    await api(`/products/${delP.id}`, { method: 'DELETE' })
+    setDelP(null)
     await load(q)
     toast('Produk dihapus')
   }
@@ -168,7 +170,7 @@ export default function Products() {
                 <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => openEdit(p)}>
                   <Pencil size={13} /> Edit
                 </Button>
-                <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => remove(p)}>
+                <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => setDelP(p)}>
                   <Trash2 size={13} /> Hapus
                 </Button>
               </div>
@@ -230,6 +232,13 @@ export default function Products() {
           </div>
         </form>
       </Modal>
+      <ConfirmDialog
+        open={!!delP}
+        title="Hapus produk?"
+        body={delP ? `${delP.sku} — ${delP.name} akan dihapus permanen dari master data. Order lama yang memakai produk ini tidak terpengaruh.` : undefined}
+        onConfirm={remove}
+        onCancel={() => setDelP(null)}
+      />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Search, Loader2, Building2 } from 'lucide-react'
 import { api } from '../lib/api'
 import type { Buyer } from '../lib/types'
 import Breadcrumbs from '../components/Breadcrumbs'
-import { Button, EmptyState, Field, Modal, inputCls, SkeletonList } from '../components/UI'
+import { Button, EmptyState, Field, Modal, inputCls, SkeletonList, ConfirmDialog } from '../components/UI'
 import { toast } from '../components/Toast'
 
 const empty: Omit<Buyer, 'id' | 'created_at' | 'updated_at'> = {
@@ -20,6 +20,7 @@ const empty: Omit<Buyer, 'id' | 'created_at' | 'updated_at'> = {
 
 export default function Buyers() {
   const [buyers, setBuyers] = useState<Buyer[]>([])
+  const [delB, setDelB] = useState<Buyer | null>(null)
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
@@ -88,9 +89,10 @@ export default function Buyers() {
     }
   }
 
-  const remove = async (b: Buyer) => {
-    if (!confirm(`Hapus buyer ${b.company_name}?`)) return
-    await api(`/buyers/${b.id}`, { method: 'DELETE' })
+  const remove = async () => {
+    if (!delB) return
+    await api(`/buyers/${delB.id}`, { method: 'DELETE' })
+    setDelB(null)
     await load(q)
     toast('Buyer dihapus')
   }
@@ -162,7 +164,7 @@ export default function Buyers() {
                 <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => openEdit(b)}>
                   <Pencil size={13} /> Edit
                 </Button>
-                <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => remove(b)}>
+                <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => setDelB(b)}>
                   <Trash2 size={13} /> Hapus
                 </Button>
               </div>
@@ -211,6 +213,13 @@ export default function Buyers() {
           </div>
         </form>
       </Modal>
+      <ConfirmDialog
+        open={!!delB}
+        title="Hapus buyer?"
+        body={delB ? `${delB.company_name} — ${delB.city}, ${delB.country} akan dihapus permanen. Order lama tetap menyimpan datanya.` : undefined}
+        onConfirm={remove}
+        onCancel={() => setDelB(null)}
+      />
     </div>
   )
 }

@@ -18,7 +18,7 @@ import {
 import { api, getToken } from '../lib/api'
 import type { Document, Order, Product, Shipment } from '../lib/types'
 import { fmtMoney, statusFlow, statusMeta } from '../lib/status'
-import { Button, inputCls } from '../components/UI'
+import { Button, inputCls, ConfirmDialog } from '../components/UI'
 import Breadcrumbs from '../components/Breadcrumbs'
 import CourierPack from '../components/CourierPack'
 import { toast } from '../components/Toast'
@@ -42,6 +42,8 @@ export default function OrderDetail() {
   const [order, setOrder] = useState<Order | null>(null)
   const [docs, setDocs] = useState<Document[]>([])
   const [delDoc, setDelDoc] = useState<Document | null>(null)
+  const [itemDel, setItemDel] = useState<number | null>(null)
+  const [cancelAsk, setCancelAsk] = useState(false)
   const [payNote, setPayNote] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [error, setError] = useState('')
@@ -52,16 +54,6 @@ export default function OrderDetail() {
   const [qty, setQty] = useState('')
   const [price, setPrice] = useState('')
   const [busy, setBusy] = useState(false)
-
-  // kunci scroll background saat modal hapus dokumen terbuka
-  useEffect(() => {
-    if (!delDoc) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [delDoc])
 
   // shipment form
   const emptySh: Shipment = {
@@ -168,7 +160,6 @@ export default function OrderDetail() {
   }
 
   const removeItem = async (itemId: number) => {
-    if (!confirm('Hapus item ini?')) return
     await api(`/orders/${oid}/items/${itemId}`, { method: 'DELETE' })
     await load()
     toast('Item dihapus')
@@ -304,7 +295,7 @@ export default function OrderDetail() {
             </Button>
           ))}
           {canEdit && (
-            <Button variant="danger" onClick={() => confirm('Batalkan pesanan ini?') && changeStatus('cancelled')}>
+            <Button variant="danger" onClick={() => setCancelAsk(true)}>
               <X size={14} /> Batalkan
             </Button>
           )}
@@ -368,7 +359,7 @@ export default function OrderDetail() {
                   <span className="text-zinc-500">× {fmtMoney(it.unit_price_usd)}</span>
                   <span className="font-medium text-zinc-100">{fmtMoney(it.line_total)}</span>
                   {canEdit && (
-                    <button onClick={() => removeItem(it.id)} className="rounded p-1 text-zinc-500 hover:bg-red-600/15 hover:text-red-400">
+                    <button onClick={() => setItemDel(it.id)} className="rounded p-1 text-zinc-500 hover:bg-red-600/15 hover:text-red-400">
                       <Trash2 size={14} />
                     </button>
                   )}
@@ -565,27 +556,42 @@ export default function OrderDetail() {
           ))}
         </div>
 
-        {delDoc && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4" onClick={() => setDelDoc(null)}>
-            <div className="anim-pop my-auto w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-5 max-h-[85dvh] overflow-y-auto overscroll-contain" onClick={(e) => e.stopPropagation()}>
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                <Trash2 size={16} className="text-rose-400" /> Hapus dokumen?
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                <span className="font-mono text-zinc-300">{delDoc.doc_no}</span> ({delDoc.doc_type}) akan dihapus
-                permanen dari server. Dokumen tetap bisa dibuat ulang dari data order ini.
-              </p>
-              <div className="mt-4 flex justify-end gap-2">
-                <button onClick={() => setDelDoc(null)} className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700">
-                  Batal
-                </button>
-                <button onClick={deleteDoc} disabled={busy} className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-500 disabled:opacity-50">
-                  {busy ? 'Menghapus…' : 'Ya, hapus'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmDialog
+          open={!!delDoc}
+          title="Hapus dokumen?"
+          body={
+            delDoc
+              ? `${delDoc.doc_no} (${delDoc.doc_type}) akan dihapus permanen dari server. Dokumen tetap bisa dibuat ulang dari data order ini — nomor baru akan dibuat saat generate berikutnya.`
+              : undefined
+          }
+          busy={busy}
+          onConfirm={deleteDoc}
+          onCancel={() => setDelDoc(null)}
+        />
+        <ConfirmDialog
+          open={itemDel !== null}
+          title="Hapus item?"
+          body="Item ini akan dihapus dari order. Total nilai, berat, dan CBM akan dihitung ulang."
+          onConfirm={() => {
+            if (itemDel === null) return
+            const id = itemDel
+            setItemDel(null)
+            void removeItem(id)
+          }}
+          onCancel={() => setItemDel(null)}
+        />
+        <ConfirmDialog
+          open={cancelAsk}
+          title="Batalkan order?"
+          body="Order akan berstatus Dibatalkan dan tidak bisa dilanjutkan kembali."
+          confirmLabel="Ya, batalkan"
+          tone="warn"
+          onConfirm={() => {
+            setCancelAsk(false)
+            void changeStatus('cancelled')
+          }}
+          onCancel={() => setCancelAsk(false)}
+        />
 
         {order.status !== 'cancelled' && (
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
