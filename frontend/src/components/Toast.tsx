@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, CheckCircle2, Info } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react'
 
 type Kind = 'success' | 'error' | 'info'
 interface T {
@@ -11,40 +11,32 @@ interface T {
 let push: ((t: T) => void) | null = null
 let seq = 1
 
-/** Panggil dari handler mana pun: toast('Produk disimpan') / toast('Gagal', 'error') */
 export function toast(msg: string, kind: Kind = 'success') {
   push?.({ id: seq++, msg, kind })
 }
 
-const icon = (k: Kind) => {
-  switch (k) {
-    case 'success':
-      return <CheckCircle2 size={15} className="shrink-0 text-emerald-400" />
-    case 'error':
-      return <AlertTriangle size={15} className="shrink-0 text-rose-400" />
-    default:
-      return <Info size={15} className="shrink-0 text-indigo-400" />
-  }
+const icons: Record<Kind, typeof CheckCircle2> = {
+  success: CheckCircle2,
+  error: AlertTriangle,
+  info: Info,
+}
+const iconTone: Record<Kind, string> = {
+  success: 'text-emerald-400',
+  error: 'text-rose-400',
+  info: 'text-sky-400',
+}
+const borderTone: Record<Kind, string> = {
+  success: 'border-emerald-500/40',
+  error: 'border-rose-500/40',
+  info: 'border-sky-500/40',
 }
 
-const pill = (k: Kind) => {
-  switch (k) {
-    case 'success':
-      return 'border-emerald-800/60 bg-zinc-950/95'
-    case 'error':
-      return 'border-rose-800/60 bg-zinc-950/95'
-    default:
-      return 'border-indigo-800/60 bg-zinc-950/95'
-  }
-}
-
-/** Mount sekali di App — merender stack toast pojok atas tengah. */
 export function Toasts() {
   const [items, setItems] = useState<T[]>([])
   useEffect(() => {
     push = (t: T) => {
-      setItems((x) => [...x, t])
-      setTimeout(() => setItems((x) => x.filter((y) => y.id !== t.id)), 3200)
+      setItems((x) => [...x.slice(-2), t]) // maksimal 3 tampil
+      setTimeout(() => setItems((x) => x.filter((y) => y.id !== t.id)), 2600)
     }
     return () => {
       push = null
@@ -53,16 +45,31 @@ export function Toasts() {
 
   if (items.length === 0) return null
   return (
-    <div className="pointer-events-none fixed left-1/2 top-3 z-[100] flex w-full max-w-sm -translate-x-1/2 flex-col items-center gap-2 px-4">
-      {items.map((t) => (
-        <div
-          key={t.id}
-          className={`anim-pop flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm text-zinc-100 shadow-2xl backdrop-blur ${pill(t.kind)}`}
-        >
-          {icon(t.kind)}
-          <span className="leading-snug">{t.msg}</span>
-        </div>
-      ))}
+    <div className="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center px-4">
+      <div className="pointer-events-auto flex w-full max-w-sm flex-col gap-3">
+        {items.map((t) => {
+          const Ic = icons[t.kind]
+          return (
+            <div
+              key={t.id}
+              role="status"
+              className={`anim-pop flex items-center gap-3 rounded-2xl border bg-zinc-900/95 p-4 shadow-2xl backdrop-blur ${borderTone[t.kind]}`}
+            >
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5 ${iconTone[t.kind]}`}>
+                <Ic size={19} />
+              </span>
+              <p className="flex-1 text-sm font-medium leading-snug text-zinc-100">{t.msg}</p>
+              <button
+                onClick={() => setItems((x) => x.filter((y) => y.id !== t.id))}
+                className="rounded-md p-1 text-zinc-500 hover:bg-white/10 hover:text-zinc-200"
+                aria-label="Tutup notifikasi"
+              >
+                <X size={15} />
+              </button>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

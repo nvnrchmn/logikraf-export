@@ -53,6 +53,16 @@ export default function OrderDetail() {
   const [price, setPrice] = useState('')
   const [busy, setBusy] = useState(false)
 
+  // kunci scroll background saat modal hapus dokumen terbuka
+  useEffect(() => {
+    if (!delDoc) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [delDoc])
+
   // shipment form
   const emptySh: Shipment = {
     id: 0, order_id: 0, peb_no: '', npe_no: '', vessel_name: '', voyage_no: '',
@@ -557,7 +567,7 @@ export default function OrderDetail() {
 
         {delDoc && (
           <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4" onClick={() => setDelDoc(null)}>
-            <div className="anim-pop my-auto w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="anim-pop my-auto w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-5 max-h-[85dvh] overflow-y-auto overscroll-contain" onClick={(e) => e.stopPropagation()}>
               <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                 <Trash2 size={16} className="text-rose-400" /> Hapus dokumen?
               </h3>
