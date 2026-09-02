@@ -45,7 +45,8 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 - [x] **fix(main) chdir cerdas + signature toleran**: cari project root berbasis assets/ (naik dari bin/), signature file hilang ≠ gagal render (os.Stat). Catatan: storage/signatures/ kosong di server — upload ulang tanda tangan di halaman Pengaturan
 - [x] **Struktur invoice + finishing SELESAI + VERIFIED**: terbilang 'SAY: ... USD AND XX/100' di PI/CI (number-to-words manual + unit test), 'Country of Origin' dari profil perusahaan (default Indonesia), footer 'E.&O.E.' di semua dokumen non-PEB
 - [x] **fix PEB full width SELESAI + VERIFIED**: tabel PEB 180mm (sebelumnya 161mm), header 'Berat Kotor (kg)' dll diukur via GetStringWidth (TestPEBHeaderFits) — tak ada lagi header terpotong; uraian rata kiri, nilai FOB rata kanan
-- [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
++- [x] **Logo perusahaan SELESAI + VERIFIED (live pixel check)**: field LogoImage + POST/GET /company/logo(-image) (admin, PNG/JPG ≤2MB, storage/logos/), drawLogo kiri atas semua dokumen termasuk PEB (w≤50 h≤18mm, os.Stat toleran), teks header geser kanan; card upload di Pengaturan; logo uji merah 8372px terdeteksi di PDF live
+ - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional
 - CI: `.github/workflows/deploy.yml` — push main → build → rsync (sudo) → restart systemd
