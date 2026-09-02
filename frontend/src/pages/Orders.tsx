@@ -145,6 +145,9 @@ export default function Orders() {
                   <span className={`rounded-full px-2 py-0.5 text-[11px] ${statusMeta[o.status].cls}`}>
                     {statusMeta[o.status].label}
                   </span>
+                  <span className={`hidden rounded-full px-2 py-0.5 text-[11px] sm:inline ${o.payment_status === 'paid' ? 'bg-emerald-600/15 text-emerald-300' : o.payment_status === 'dp' ? 'bg-amber-600/15 text-amber-300' : 'bg-rose-600/15 text-rose-300'}`}>
+                    {o.payment_status === 'paid' ? '✓ Lunas' : o.payment_status === 'dp' ? 'DP' : 'Belum'}
+                  </span>
                 </div>
                 <span className="font-mono text-sm text-zinc-300">{fmtMoney(o.total_fob)}</span>
               </div>

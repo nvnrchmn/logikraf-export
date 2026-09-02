@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"strconv"
+	"time"
 
 	"logikraf-export/backend/middleware"
 	"logikraf-export/backend/models"
@@ -268,6 +269,44 @@ func (h *OrderHandler) SetStatus(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengubah status"})
 	}
 	LogAudit(h.DB, middleware.CurrentUserID(c), "status", "order", strconv.FormatUint(uint64(id), 10), o.OrderNo+" → "+req.Status)
+	return c.JSON(o)
+}
+
+// UpdatePayment — ubah status pembayaran order (unpaid | dp | paid) + catatan.
+// PUT /api/orders/:id/payment
+func (h *OrderHandler) UpdatePayment(c fiber.Ctx) error {
+	id, err := idParam(c)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
+	}
+	var req struct {
+		Status string `json:"status"`
+		Note   string `json:"note"`
+	}
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "payload tidak valid"})
+	}
+	switch req.Status {
+	case "unpaid", "dp", "paid":
+	default:
+		return c.Status(400).JSON(fiber.Map{"error": "status pembayaran harus unpaid/dp/paid"})
+	}
+	var o models.Order
+	if err := h.DB.First(&o, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "pesanan tidak ditemukan"})
+	}
+	o.PaymentStatus = req.Status
+	o.PaymentNote = req.Note
+	if req.Status == "paid" && o.PaidAt == nil {
+		now := time.Now()
+		o.PaidAt = &now
+	} else if req.Status != "paid" {
+		o.PaidAt = nil
+	}
+	if err := h.DB.Save(&o).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan pembayaran"})
+	}
+	LogAudit(h.DB, middleware.CurrentUserID(c), "payment", "order", strconv.FormatUint(uint64(id), 10), o.OrderNo+" → "+req.Status)
 	return c.JSON(o)
 }
 

@@ -112,13 +112,26 @@ func (h *DashboardHandler) Stats(c fiber.Ctx) error {
 		ords = append(ords, ordItem{o.ID, o.OrderNo, o.Buyer.CompanyName, o.Status, fob, o.CreatedAt.Format("2006-01-02 15:04")})
 	}
 
+	// Pembayaran belum lunas (unpaid/dp, bukan cancelled) — count + total FOB
+	var unpaidOrders []models.Order
+	h.DB.Preload("Items").Where("payment_status <> ? AND status <> ?", "paid", "cancelled").Find(&unpaidOrders)
+	unpaidCount := int64(len(unpaidOrders))
+	unpaidFOB := 0.0
+	for _, o := range unpaidOrders {
+		for _, it := range o.Items {
+			unpaidFOB += it.UnitPriceUSD * float64(it.Quantity)
+		}
+	}
+
 	return c.JSON(fiber.Map{
-		"orders_total":      ordersTotal,
-		"orders_this_month": ordersMonth,
-		"fob_this_month":    fobMonth,
-		"by_status":         byStatus,
-		"active_shipments":  ships,
-		"recent_docs":       docs,
-		"recent_orders":     ords,
+		"orders_total":         ordersTotal,
+		"orders_this_month":    ordersMonth,
+		"fob_this_month":       fobMonth,
+		"by_status":            byStatus,
+		"active_shipments":     ships,
+		"recent_docs":          docs,
+		"recent_orders":        ords,
+		"payment_unpaid_count": unpaidCount,
+		"payment_unpaid_fob":   unpaidFOB,
 	})
 }

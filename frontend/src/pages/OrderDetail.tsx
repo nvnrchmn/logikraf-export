@@ -13,6 +13,7 @@ import {
   X,
   Truck,
   Save,
+  Wallet,
 } from 'lucide-react'
 import { api, getToken } from '../lib/api'
 import type { Document, Order, Product, Shipment } from '../lib/types'
@@ -39,6 +40,7 @@ export default function OrderDetail() {
   const [order, setOrder] = useState<Order | null>(null)
   const [docs, setDocs] = useState<Document[]>([])
   const [delDoc, setDelDoc] = useState<Document | null>(null)
+  const [payNote, setPayNote] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -221,6 +223,24 @@ export default function OrderDetail() {
   }
 
   const setShField = (k: keyof Shipment, v: string | null) => setSh((s) => ({ ...s, [k]: v }))
+
+  useEffect(() => {
+    if (order) setPayNote(order.payment_note ?? '')
+  }, [order])
+
+  const savePayment = async (s: string) => {
+    if (!order) return
+    setBusy(true)
+    setError('')
+    try {
+      const updated = await api<Order>(`/orders/${oid}/payment`, { method: 'PUT', body: { status: s, note: payNote } })
+      setOrder(updated)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const canEdit = order.status === 'draft'
   const shipLocked = order.status === 'draft' || order.status === 'completed' || order.status === 'cancelled'
@@ -444,6 +464,40 @@ export default function OrderDetail() {
             )}
           </div>
         </form>
+      </div>
+
+      {/* Pembayaran */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+        <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold">
+          <Wallet size={15} className="text-amber-400" /> Pembayaran
+        </h2>
+        <p className="mb-3 text-xs text-zinc-500">Status pembayaran buyer — tidak mengubah status order</p>
+        <div className="flex flex-wrap gap-2">
+          {(['unpaid', 'dp', 'paid'] as const).map((s) => {
+            const active = order.payment_status === s
+            const cls = active
+              ? s === 'paid'
+                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40'
+                : s === 'dp'
+                  ? 'bg-amber-600/20 text-amber-300 border border-amber-500/40'
+                  : 'bg-rose-600/15 text-rose-300 border border-rose-500/40'
+              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+            return (
+              <button key={s} onClick={() => savePayment(s)} disabled={busy}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${cls}`}>
+                {s === 'paid' ? '✓ Lunas' : s === 'dp' ? 'DP (Sebagian)' : 'Belum Dibayar'}
+              </button>
+            )
+          })}
+        </div>
+        <input
+          value={payNote}
+          onChange={(e) => setPayNote(e.target.value)}
+          onBlur={() => order.payment_note !== payNote && savePayment(order.payment_status)}
+          placeholder="Catatan pembayaran (opsional) — mis. T/T 50% DP, sisanya sebelum kirim"
+          className="mt-3 w-full rounded-lg border border-zinc-700 bg-zinc-800/80 px-3 py-2 text-sm text-zinc-200 outline-none placeholder:text-zinc-500 focus:border-indigo-500"
+        />
+        {order.paid_at && <p className="mt-2 text-[11px] text-emerald-400">✓ Lunas sejak {order.paid_at.slice(0, 10)}</p>}
       </div>
 
       {/* Dokumen */}

@@ -201,6 +201,55 @@ export default function Guide() {
         ))}
       </div>
 
+      {/* Aturan & dokumen pemerintah */}
+      <h2 className="mb-3 text-sm font-semibold text-zinc-400">Aturan & dokumen pemerintah (kepabeanan)</h2>
+      <div className="stagger mb-8 grid gap-2">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-amber-300">
+            <FileText size={15} /> COO — Certificate of Origin (bila buyer minta)
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
+            COO = surat keterangan asal barang, biasanya diminta buyer agar dikenai bea masuk lebih rendah
+            (perjanjian FTA, mis. ACFTA/AJCEP). <b>Tidak dibuat otomatis di sistem</b> — diterbitkan oleh
+            instansi/PPJK sesuai negara tujuan. Yang perlu disiapkan:
+          </p>
+          <div className="mt-2 rounded-lg border border-dashed border-zinc-700 bg-zinc-800/40 p-3 font-mono text-[11px] leading-relaxed text-zinc-300">
+            HS Code: (isi HS item, contoh 4016.99)<br />
+            Deskripsi barang: Mouse pad dari karet (rubber)<br />
+            Negara tujuan: (contoh SG / MY / JP ...)<br />
+            Nilai FOB & mata uang: (dari total order)<br />
+            Qty & berat bersih: (dari packing list)<br />
+            Eksportir: PT Logika Kreatif Indonesia (NIB, NPWP, alamat)<br />
+            Keterangan asal: &quot;Produk diproduksi seluruhnya di Indonesia&quot;
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-emerald-300">
+            <CheckCircle2 size={15} /> DHE — Devisa Hasil Ekspor: tidak wajib untuk mousepad
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
+            Aturan DHE (PP 36/2023) mewajibkan penempatan 30% hasil ekspor di rekening devisa — tetapi
+            <b> hanya untuk eksportir komoditas sumber daya alam</b> (pertambangan, perkebunan, kehutanan,
+            perikanan). Barang <b>manufaktur</b> seperti mousepad <b>dikecualikan</b>. Jadi saat ini tidak ada
+            kewajiban DHE untuk Logikraf. Kalau suatu saat ekspor komoditas SDA, konsultasikan ke bank devisa
+            (BRI/Mandiri/BNI) untuk pembukaan rekening &amp; pelaporan.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
+            <Info size={15} /> Lartas — larangan & pembatasan
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
+            Mousepad umumnya <b>bukan barang lartas</b> untuk ekspor — tidak butuh izin khusus. Yang wajib
+            dijaga: <b>HS Code benar</b> (sistem memakai kode 8 digit; BTKI diperbarui tiap tahun, cek saat
+            awal tahun). Kalau ragu dengan HS atau negara tujuan tertentu, verifikasi ke PPJK atau cek
+            INATRADE (eservice.insw.go.id) sebelum kiriman laut pertama.
+          </p>
+        </div>
+      </div>
+
       {/* Istilah */}
       <h2 className="mb-3 text-sm font-semibold text-zinc-400">Istilah yang perlu dipahami</h2>
       <div className="stagger mb-8 grid gap-2 sm:grid-cols-2">

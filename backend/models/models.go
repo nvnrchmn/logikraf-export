@@ -81,6 +81,9 @@ type Order struct {
 	Currency        string      `gorm:"size:8;default:USD" json:"currency"`
 	PaymentTerms    string      `gorm:"size:255" json:"payment_terms"`
 	Status          string      `gorm:"size:20;default:draft;index" json:"status"`
+	PaymentStatus   string      `gorm:"size:12;default:unpaid" json:"payment_status"` // unpaid | dp | paid
+	PaymentNote     string      `gorm:"size:255" json:"payment_note"`
+	PaidAt          *time.Time  `json:"paid_at"`
 	Notes           string      `json:"notes"`
 	CreatedBy       uint        `json:"created_by"`
 	Items           []OrderItem `gorm:"foreignKey:OrderID" json:"items"`

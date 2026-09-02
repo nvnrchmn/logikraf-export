@@ -94,6 +94,9 @@ export interface Order {
   currency: string
   payment_terms: string
   status: OrderStatus
+  payment_status: string
+  payment_note: string
+  paid_at: string | null
   notes: string
   total_fob: number
   total_net_kg: number
@@ -123,6 +126,8 @@ export interface DashboardStats {
   }[]
   recent_docs: { id: number; doc_no: string; doc_type: string; order_id: number; order_no: string; created_at: string }[]
   recent_orders: { id: number; order_no: string; buyer_name: string; status: OrderStatus; total_fob: number; created_at: string }[]
+  payment_unpaid_count: number
+  payment_unpaid_fob: number
 }
 
 export interface Shipment {

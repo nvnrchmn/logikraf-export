@@ -51,6 +51,7 @@ func Setup(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	authed.Put("/orders/:id", orderH.Update)
 	authed.Delete("/orders/:id", orderH.Delete)
 	authed.Patch("/orders/:id/status", orderH.SetStatus)
+	authed.Put("/orders/:id/payment", orderH.UpdatePayment)
 	authed.Post("/orders/:id/items", orderH.AddItem)
 	authed.Put("/orders/:id/items/:itemId", orderH.UpdateItem)
 	authed.Delete("/orders/:id/items/:itemId", orderH.RemoveItem)

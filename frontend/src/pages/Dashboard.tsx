@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import {
+  AlertTriangle,
   Wallet,
   Package,
   Ship,
@@ -48,6 +49,7 @@ export default function Dashboard() {
     { label: 'FOB Bulan Ini', value: fmtMoney(stats.fob_this_month), icon: Wallet, cls: 'text-indigo-400' },
     { label: 'Order Bulan Ini', value: String(stats.orders_this_month), icon: Package, cls: 'text-emerald-400' },
     { label: 'Shipment Aktif', value: String(stats.active_shipments.length), icon: Ship, cls: 'text-amber-400' },
+    { label: 'Belum Lunas', value: `${stats.payment_unpaid_count} · ${fmtMoney(stats.payment_unpaid_fob)}`, icon: AlertTriangle, cls: 'text-rose-400' },
     { label: 'Total Order', value: String(stats.orders_total), icon: Layers, cls: 'text-sky-400' },
   ]
 
