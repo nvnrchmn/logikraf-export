@@ -518,13 +518,18 @@ func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 // dedupeAddr — gabung address/city/country tanpa duplikat elemen yang sudah ada.
 func dedupeAddr(address, city, country string) string {
 	addr := strings.TrimSpace(address)
-	if city != "" && !strings.Contains(strings.ToLower(addr), strings.ToLower(city)) {
-		addr = strings.TrimSpace(addr + ", " + city)
+	parts := []string{}
+	if addr != "" {
+		parts = append(parts, addr)
 	}
-	if country != "" && !strings.Contains(strings.ToLower(addr), strings.ToLower(country)) {
-		addr = strings.TrimSpace(addr + ", " + country)
+	joined := func() string { return strings.Join(parts, ", ") }
+	if city != "" && !strings.Contains(strings.ToLower(joined()), strings.ToLower(city)) {
+		parts = append(parts, city)
 	}
-	return addr
+	if country != "" && !strings.Contains(strings.ToLower(joined()), strings.ToLower(country)) {
+		parts = append(parts, country)
+	}
+	return joined()
 }
 
 // ---------- Helper ----------
