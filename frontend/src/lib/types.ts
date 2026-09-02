@@ -74,7 +74,6 @@ export interface CompanySetting {
   signer_name: string
   signer_title: string
   signature_image: string
-  logo_image: string
   updated_at: string
 }
 

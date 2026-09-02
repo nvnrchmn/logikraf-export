@@ -96,11 +96,8 @@ func fontPath(style string) string {
 // kontak, NIB/NPWP), judul dokumen + No./Date rata kanan, garis pemisah tipis.
 func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	c := d.Company
-	// kolom kiri: dengan logo → x=62 (133mm); tanpa logo → x=15 (90mm)
+	// kolom kiri (x=15..105), kanan (x=105..195)
 	leftX, leftW := 15.0, 90.0
-	if drawLogo(pdf, c) > 0 {
-		leftX, leftW = 62.0, 133.0
-	}
 	y := pdf.GetY()
 
 	// Baris 1: nama perusahaan (kiri) + judul dokumen (kanan)
@@ -274,31 +271,6 @@ func notesBlock(pdf *fpdf.Fpdf, o models.Order) {
 	pdf.CellFormat(0, 5, "Notes:", "", 1, "L", false, 0, "")
 	pdf.SetFont("DVS", "", 8)
 	pdf.MultiCell(0, 5, o.Notes, "", "L", false)
-}
-
-// drawLogo — gambar logo kiri atas; return lebar yang dikonsumsi (0 = tidak ada).
-func drawLogo(pdf *fpdf.Fpdf, c models.CompanySetting) float64 {
-	if c.LogoImage == "" {
-		return 0
-	}
-	if _, err := os.Stat(c.LogoImage); err != nil {
-		return 0
-	}
-	if info := pdf.RegisterImage(c.LogoImage, ""); info != nil {
-		w := 40.0
-		h := w * info.Height() / info.Width()
-		if h > 18 {
-			h = 18
-			w = h * info.Width() / info.Height()
-		}
-		if w > 50 {
-			w = 50
-			h = w * info.Height() / info.Width()
-		}
-		pdf.ImageOptions(c.LogoImage, 15, pdf.GetY(), w, h, false, fpdf.ImageOptions{ImageType: "", ReadDpi: true}, 0, "")
-		return w + 7 // jarak ke teks
-	}
-	return 0
 }
 
 func originBlock(pdf *fpdf.Fpdf, d DocData) {

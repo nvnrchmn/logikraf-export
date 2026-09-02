@@ -16,18 +16,18 @@ type User struct {
 
 // Product — barang jadi di gudang (mousepad & sejenisnya), punya HS Code
 type Product struct {
-	ID           uint    `gorm:"primaryKey" json:"id"`
-	SKU          string  `gorm:"uniqueIndex;size:64" json:"sku"`
-	Name         string  `gorm:"size:191" json:"name"`
-	HSCode       string  `gorm:"size:20" json:"hs_code"`
-	Description  string  `json:"description"`
-	LengthCm     float64 `json:"length_cm"`
-	WidthCm      float64 `json:"width_cm"`
-	HeightCm     float64 `json:"height_cm"`
-	NetWeightG   float64 `json:"net_weight_g"`
-	GrossWeightG float64 `json:"gross_weight_g"`
-	UnitPriceUSD float64 `gorm:"type:decimal(14,4)" json:"unit_price_usd"`
-	Active       bool    `gorm:"default:true" json:"active"`
+	ID           uint      `gorm:"primaryKey" json:"id"`
+	SKU          string    `gorm:"uniqueIndex;size:64" json:"sku"`
+	Name         string    `gorm:"size:191" json:"name"`
+	HSCode       string    `gorm:"size:20" json:"hs_code"`
+	Description  string    `json:"description"`
+	LengthCm     float64   `json:"length_cm"`
+	WidthCm      float64   `json:"width_cm"`
+	HeightCm     float64   `json:"height_cm"`
+	NetWeightG   float64   `json:"net_weight_g"`
+	GrossWeightG float64   `json:"gross_weight_g"`
+	UnitPriceUSD float64   `gorm:"type:decimal(14,4)" json:"unit_price_usd"`
+	Active       bool      `gorm:"default:true" json:"active"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -67,21 +67,21 @@ type Incoterm struct {
 // Order status flow: draft → confirmed → packed → shipped → completed | cancelled
 // ShippingMode: courier (parcel/ekspres) | lcl | fcl
 type Order struct {
-	ID              uint      `gorm:"primaryKey" json:"id"`
-	OrderNo         string    `gorm:"uniqueIndex;size:32" json:"order_no"`
-	ShippingMode    string    `gorm:"size:10;default:courier;index" json:"shipping_mode"`
-	BuyerID         uint      `json:"buyer_id"`
-	Buyer           Buyer     `gorm:"foreignKey:BuyerID" json:"buyer"`
-	IncotermID      uint      `json:"incoterm_id"`
-	Incoterm        Incoterm  `gorm:"foreignKey:IncotermID" json:"incoterm"`
-	PortLoadingID   *uint     `json:"port_loading_id"`
-	PortLoading     Port      `gorm:"foreignKey:PortLoadingID" json:"port_loading"`
-	PortDischargeID *uint     `json:"port_discharge_id"`
-	PortDischarge   Port      `gorm:"foreignKey:PortDischargeID" json:"port_discharge"`
-	Currency        string    `gorm:"size:8;default:USD" json:"currency"`
-	PaymentTerms    string    `gorm:"size:255" json:"payment_terms"`
-	Status          string    `gorm:"size:20;default:draft;index" json:"status"`
-	Notes           string    `json:"notes"`
+	ID              uint        `gorm:"primaryKey" json:"id"`
+	OrderNo         string      `gorm:"uniqueIndex;size:32" json:"order_no"`
+	ShippingMode    string      `gorm:"size:10;default:courier;index" json:"shipping_mode"`
+	BuyerID         uint        `json:"buyer_id"`
+	Buyer           Buyer       `gorm:"foreignKey:BuyerID" json:"buyer"`
+	IncotermID      uint        `json:"incoterm_id"`
+	Incoterm        Incoterm    `gorm:"foreignKey:IncotermID" json:"incoterm"`
+	PortLoadingID   *uint       `json:"port_loading_id"`
+	PortLoading     Port        `gorm:"foreignKey:PortLoadingID" json:"port_loading"`
+	PortDischargeID *uint       `json:"port_discharge_id"`
+	PortDischarge   Port        `gorm:"foreignKey:PortDischargeID" json:"port_discharge"`
+	Currency        string      `gorm:"size:8;default:USD" json:"currency"`
+	PaymentTerms    string      `gorm:"size:255" json:"payment_terms"`
+	Status          string      `gorm:"size:20;default:draft;index" json:"status"`
+	Notes           string      `json:"notes"`
 	CreatedBy       uint        `json:"created_by"`
 	Items           []OrderItem `gorm:"foreignKey:OrderID" json:"items"`
 	Shipment        *Shipment   `gorm:"foreignKey:OrderID" json:"shipment,omitempty"`
@@ -91,7 +91,7 @@ type Order struct {
 	TotalCBM        float64     `gorm:"-" json:"total_cbm"`
 	PEBRequired     bool        `gorm:"-" json:"peb_required"`
 	CreatedAt       time.Time   `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
 }
 
 type OrderItem struct {
@@ -158,7 +158,6 @@ type CompanySetting struct {
 	SignerName     string    `gorm:"size:100" json:"signer_name"`
 	SignerTitle    string    `gorm:"size:100" json:"signer_title"`
 	SignatureImage string    `gorm:"size:255" json:"signature_image"`
-	LogoImage      string    `gorm:"size:255" json:"logo_image"`
 	UpdatedBy      uint      `json:"updated_by"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }

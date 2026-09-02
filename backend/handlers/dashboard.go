@@ -113,12 +113,12 @@ func (h *DashboardHandler) Stats(c fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"orders_total":     ordersTotal,
+		"orders_total":      ordersTotal,
 		"orders_this_month": ordersMonth,
-		"fob_this_month":   fobMonth,
-		"by_status":        byStatus,
-		"active_shipments": ships,
-		"recent_docs":      docs,
-		"recent_orders":    ords,
+		"fob_this_month":    fobMonth,
+		"by_status":         byStatus,
+		"active_shipments":  ships,
+		"recent_docs":       docs,
+		"recent_orders":     ords,
 	})
 }
