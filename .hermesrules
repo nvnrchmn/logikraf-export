@@ -54,6 +54,9 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 - [x] **Logo dihapus total (15b50e8→84670b3)**: logo tidak perlu → hapus render docgen + handler/route/model + card Settings; header 2 kolom ala Maroto (gofpdf): kiri 105mm nama bold12/alamat/kontak/NIB 7 abu, kanan 75mm judul bold14 + No + Date rata kanan, garis HITAM 0.5mm (user beri contoh snippet; kontak email|phone); verified live PI-202609-0027/0028
   - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
+## Log 2026-09-02
+- fix(order-detail) 8f66709: blank screen React error #310 — useEffect payNote di bawah early return if(!order) → hook count berubah antar render; pindah ke atas; verified headless: DETAIL len 1338, no page errors
+
 ## Operasional
 - CI: `.github/workflows/deploy.yml` — push main → build → rsync (sudo) → restart systemd
 - GitHub secrets: VPS_SSH_KEY, VPS_HOST, VPS_USER (nvnrchmn)
