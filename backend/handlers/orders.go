@@ -137,15 +137,13 @@ func (h *OrderHandler) Get(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
 	}
-	var o models.Order
-	err = h.DB.Preload("Buyer").Preload("Incoterm").Preload("PortLoading").Preload("PortDischarge").Preload("Items.Product").Preload("Shipment").First(&o, id).Error
+	o, err := h.fullOrder(id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.Status(404).JSON(fiber.Map{"error": "pesanan tidak ditemukan"})
 	}
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
 	}
-	computeOrderTotals(&o)
 	return c.JSON(o)
 }
 
@@ -163,6 +161,17 @@ func computeOrderTotals(o *models.Order) {
 	}
 	// PEB wajib kecuali kiriman kurir di bawah ambang USD 100 / 30 kg (PMK 60/2016)
 	o.PEBRequired = !(o.ShippingMode == "courier" && o.TotalFOB < 100 && o.TotalGrossKG < 30)
+}
+
+// fullOrder memuat order lengkap dengan relasi (Buyer, Incoterm, pelabuhan, items+produk, shipment)
+// + total terhitung (FOB/berat/CBM/PEB). Dipakai Get dan semua mutasi yang mereturn order.
+func (h *OrderHandler) fullOrder(id uint) (models.Order, error) {
+	var o models.Order
+	err := h.DB.Preload("Buyer").Preload("Incoterm").Preload("PortLoading").Preload("PortDischarge").Preload("Items.Product").Preload("Shipment").First(&o, id).Error
+	if err == nil {
+		computeOrderTotals(&o)
+	}
+	return o, err
 }
 
 type updateOrderReq struct {
@@ -210,7 +219,11 @@ func (h *OrderHandler) Update(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan pesanan"})
 	}
 	LogAudit(h.DB, middleware.CurrentUserID(c), "update", "order", strconv.FormatUint(uint64(id), 10), o.OrderNo)
-	return c.JSON(o)
+	o2, err := h.fullOrder(id)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
+	}
+	return c.JSON(o2)
 }
 
 func (h *OrderHandler) Delete(c fiber.Ctx) error {
@@ -258,7 +271,11 @@ func (h *OrderHandler) SetStatus(c fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "pesanan tidak ditemukan"})
 	}
 	if req.Status == o.Status {
-		return c.JSON(o)
+		o2, err := h.fullOrder(id)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
+		}
+		return c.JSON(o2)
 	}
 	allowed, ok := statusFlow[o.Status]
 	if !ok || !containsStr(allowed, req.Status) {
@@ -269,7 +286,11 @@ func (h *OrderHandler) SetStatus(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengubah status"})
 	}
 	LogAudit(h.DB, middleware.CurrentUserID(c), "status", "order", strconv.FormatUint(uint64(id), 10), o.OrderNo+" → "+req.Status)
-	return c.JSON(o)
+	o2, err := h.fullOrder(id)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
+	}
+	return c.JSON(o2)
 }
 
 // UpdatePayment — ubah status pembayaran order (unpaid | dp | paid) + catatan.
@@ -307,7 +328,11 @@ func (h *OrderHandler) UpdatePayment(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan pembayaran"})
 	}
 	LogAudit(h.DB, middleware.CurrentUserID(c), "payment", "order", strconv.FormatUint(uint64(id), 10), o.OrderNo+" → "+req.Status)
-	return c.JSON(o)
+	o2, err := h.fullOrder(id)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal memuat pesanan"})
+	}
+	return c.JSON(o2)
 }
 
 // ---- Items ----
