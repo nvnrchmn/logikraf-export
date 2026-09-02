@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -67,9 +68,21 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 		}
 	}
 
-	docNo, err := utils.DocNo(h.DB, docType)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "gagal membuat nomor dokumen"})
+	// Reuse nomor dokumen yang sudah pernah dibuat untuk (order, tipe) — regenerasi
+	// karena perubahan data TIDAK boleh mengganti nomor (nomor sudah jadi referensi buyer).
+	var existing models.Document
+	err = h.DB.Where("order_id = ? AND doc_type = ?", id, docType).Order("id DESC").First(&existing).Error
+	regenerating := err == nil
+	var docNo string
+	if regenerating {
+		docNo = existing.DocNo
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+		docNo, err = utils.DocNo(h.DB, docType)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "gagal membuat nomor dokumen"})
+		}
+	} else {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal memeriksa dokumen yang ada"})
 	}
 
 	// Muat profil perusahaan untuk header & tanda tangan
@@ -92,6 +105,25 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan dokumen"})
 	}
 
+	if regenerating {
+		// Update record lama (file ditulis ulang ke path yang sama — nomor sama → path sama).
+		existing.GeneratedBy = middleware.CurrentUserID(c)
+		if err := h.DB.Save(&existing).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "gagal memperbarui dokumen"})
+		}
+		// Bersihkan duplikat lama hasil regenerasi sebelumnya (nomor beda, isi usang).
+		var stale []models.Document
+		h.DB.Where("order_id = ? AND doc_type = ? AND id < ?", id, docType, existing.ID).Find(&stale)
+		for _, s := range stale {
+			if err := os.Remove(s.FilePath); err != nil && !os.IsNotExist(err) {
+				continue
+			}
+			h.DB.Delete(&s)
+		}
+		LogAudit(h.DB, existing.GeneratedBy, "doc_generate", "document", strconv.FormatUint(uint64(existing.ID), 10), docNo+" (regenerate)")
+		return c.JSON(existing)
+	}
+
 	doc := models.Document{
 		DocNo:       docNo,
 		OrderID:     id,
@@ -103,7 +135,6 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mencatat dokumen"})
 	}
 	LogAudit(h.DB, doc.GeneratedBy, "doc_generate", "document", strconv.FormatUint(uint64(doc.ID), 10), docNo)
-
 	return c.Status(201).JSON(doc)
 }
 
