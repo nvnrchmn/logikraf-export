@@ -92,55 +92,38 @@ func fontPath(style string) string {
 
 // ---------- Blok UI ----------
 
-// header — kop invoice klasik: logo kiri, blok perusahaan kiri (nama, alamat,
-// kontak, NIB/NPWP), judul dokumen + No./Date rata kanan, garis pemisah tipis.
+// header — header 2 kolom (gaya invoice): kiri profil perusahaan, kanan
+// judul dokumen + No./Date, garis pemisah hitam di bawah.
 func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	c := d.Company
-	// kolom kiri (x=15..105), kanan (x=105..195)
-	leftX, leftW := 15.0, 90.0
 	y := pdf.GetY()
+	// kolom kiri 7/12 (105mm), kanan 5/12 (75mm)
+	leftX, leftW := 15.0, 105.0
+	rightX, rightW := 120.0, 75.0
 
-	// Baris 1: nama perusahaan (kiri) + judul dokumen (kanan)
-	pdf.SetFont("DVS-B", "", 13)
-	pdf.SetTextColor(15, 23, 42)
-	pdf.SetXY(leftX, y)
-	pdf.MultiCell(leftW, 8, c.CompanyName, "", "L", false)
+	// ---- Sisi kiri: profil perusahaan ----
 	pdf.SetFont("DVS-B", "", 12)
-	pdf.SetXY(leftX, y)
-	pdf.CellFormat(leftW, 8, title, "", 1, "R", false, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.SetXY(leftX, y+0)
+	pdf.CellFormat(leftW, 5, c.CompanyName, "", 0, "L", false, 0, "")
 
-	// Baris 2: alamat (kiri) + nomor dokumen (kanan)
-	pdf.SetFont("DVS", "", 8.5)
-	pdf.SetTextColor(71, 85, 105)
 	addr := dedupeAddr(c.Address, c.City, c.Country)
 	if addr != "" {
-		y = pdf.GetY()
-		pdf.SetXY(leftX, y)
-		pdf.MultiCell(leftW, 5, addr, "", "L", false)
-		pdf.SetXY(leftX, y)
-		pdf.CellFormat(leftW, 5, "No. "+d.DocNo, "", 1, "R", false, 0, "")
+		pdf.SetFont("DVS", "", 8)
+		pdf.SetXY(leftX, y+5)
+		pdf.CellFormat(leftW, 5, addr, "", 0, "L", false, 0, "")
 	}
 
-	// Baris 3: kontak (kiri) + tanggal (kanan)
 	contact := strings.TrimSpace(c.Email)
 	if c.Phone != "" {
 		contact = strings.TrimSpace(contact + " | " + c.Phone)
 	}
-	if c.Website != "" {
-		contact = strings.TrimSpace(contact + " | " + c.Website)
-	}
 	if contact != "" {
-		y = pdf.GetY()
-		pdf.SetXY(leftX, y)
-		pdf.MultiCell(leftW, 5, contact, "", "L", false)
-		pdf.SetXY(leftX, y)
-		pdf.CellFormat(leftW, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
-	} else {
-		pdf.CellFormat(leftW, 5, "", "", 0, "L", false, 0, "")
-		pdf.CellFormat(leftW, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
+		pdf.SetFont("DVS", "", 8)
+		pdf.SetXY(leftX, y+9)
+		pdf.CellFormat(leftW, 5, contact, "", 0, "L", false, 0, "")
 	}
 
-	// Baris 4: identitas pajak NIB/NPWP (full width, muat 1 baris)
 	if c.NIB != "" || c.NPWP != "" {
 		var ids []string
 		if c.NIB != "" {
@@ -149,16 +132,29 @@ func header(pdf *fpdf.Fpdf, d DocData, title string) {
 		if c.NPWP != "" {
 			ids = append(ids, "Tax ID (NPWP): "+c.NPWP)
 		}
-		pdf.SetFont("DVS", "", 7.5)
-		pdf.SetTextColor(120, 130, 145)
-		pdf.SetX(15)
-		pdf.MultiCell(0, 4.5, strings.Join(ids, "   |   "), "", "L", false)
+		pdf.SetFont("DVS", "", 7)
+		pdf.SetTextColor(100, 100, 100)
+		pdf.SetXY(leftX, y+13)
+		pdf.CellFormat(leftW, 5, strings.Join(ids, " | "), "", 0, "L", false, 0, "")
 	}
 
-	// Garis pemisah tipis (bukan kop ganda) — 4mm di bawah blok header
-	yg := pdf.GetY() + 4
-	pdf.SetDrawColor(148, 163, 184)
-	pdf.SetLineWidth(0.3)
+	// ---- Sisi kanan: judul dokumen & info faktur (rata kanan) ----
+	pdf.SetFont("DVS-B", "", 14)
+	pdf.SetTextColor(0, 0, 0)
+	pdf.SetXY(rightX, y+0)
+	pdf.CellFormat(rightW, 6, title, "", 0, "R", false, 0, "")
+
+	pdf.SetFont("DVS", "", 9)
+	pdf.SetXY(rightX, y+6)
+	pdf.CellFormat(rightW, 5, "No: "+d.DocNo, "", 0, "R", false, 0, "")
+
+	pdf.SetXY(rightX, y+10)
+	pdf.CellFormat(rightW, 5, "Date: "+fmtDate(time.Now()), "", 0, "R", false, 0, "")
+
+	// ---- Garis pemisah (hitam) ----
+	yg := y + 20
+	pdf.SetDrawColor(0, 0, 0)
+	pdf.SetLineWidth(0.5)
 	pdf.Line(15, yg, 195, yg)
 	pdf.SetLineWidth(0.2)
 	pdf.SetY(yg + 4)
