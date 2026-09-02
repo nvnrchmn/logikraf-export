@@ -63,6 +63,10 @@ export default function OrderDetail() {
     if (order?.shipment) setSh({ ...emptySh, ...order.shipment })
   }, [order?.shipment])
 
+  useEffect(() => {
+    if (order) setPayNote(order.payment_note ?? '')
+  }, [order?.payment_note])
+
   const load = useCallback(async () => {
     try {
       const [o, d, p] = await Promise.all([
@@ -223,10 +227,6 @@ export default function OrderDetail() {
   }
 
   const setShField = (k: keyof Shipment, v: string | null) => setSh((s) => ({ ...s, [k]: v }))
-
-  useEffect(() => {
-    if (order) setPayNote(order.payment_note ?? '')
-  }, [order])
 
   const savePayment = async (s: string) => {
     if (!order) return
