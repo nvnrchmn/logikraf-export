@@ -46,6 +46,7 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 - [x] **Struktur invoice + finishing SELESAI + VERIFIED**: terbilang 'SAY: ... USD AND XX/100' di PI/CI (number-to-words manual + unit test), 'Country of Origin' dari profil perusahaan (default Indonesia), footer 'E.&O.E.' di semua dokumen non-PEB
 - [x] **fix PEB full width SELESAI + VERIFIED**: tabel PEB 180mm (sebelumnya 161mm), header 'Berat Kotor (kg)' dll diukur via GetStringWidth (TestPEBHeaderFits) — tak ada lagi header terpotong; uraian rata kiri, nilai FOB rata kanan
 +- [x] **Logo perusahaan SELESAI + VERIFIED (live pixel check)**: field LogoImage + POST/GET /company/logo(-image) (admin, PNG/JPG ≤2MB, storage/logos/), drawLogo kiri atas semua dokumen termasuk PEB (w≤50 h≤18mm, os.Stat toleran), teks header geser kanan; card upload di Pengaturan; logo uji merah 8372px terdeteksi di PDF live
++- [x] **fix layout header + logo**: header 2 kolom (logo kiri; teks x=62..195 = 133mm, nama tak wrap lagi, No./Date rata kanan dalam kolom teks), PEB judul+order geser ke 62..195 saat ada logo (sebelumnya tertimpa logo); tanpa logo layout lama
  - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional
