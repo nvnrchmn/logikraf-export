@@ -94,10 +94,16 @@ func fontPath(style string) string {
 
 func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	c := d.Company
-	// Baris 1: nama perusahaan (kiri, wrap 90mm) + judul dokumen (kanan)
+	// Logo (kiri atas) kalau ada — teks header bergeser ke kanan mengikuti
+	leftX, leftW := 15.0, 90.0
+	if lw := drawLogo(pdf, c); lw > 0 {
+		leftX, leftW = 15.0+lw, 105.0-(15.0+lw)
+	}
+	// Baris 1: nama perusahaan (kiri, wrap) + judul dokumen (kanan)
 	pdf.SetFont("DVS-B", "", 13)
 	y := pdf.GetY()
-	pdf.MultiCell(90, 8, c.CompanyName, "", "L", false)
+	pdf.SetXY(leftX, y)
+	pdf.MultiCell(leftW, 8, c.CompanyName, "", "L", false)
 	pdf.SetFont("DVS-B", "", 12)
 	pdf.SetXY(105, y)
 	pdf.CellFormat(90, 8, title, "", 1, "R", false, 0, "")
@@ -108,7 +114,8 @@ func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	addr := strings.TrimSpace(c.Address + ", " + c.City)
 	if addr != "" {
 		y = pdf.GetY()
-		pdf.MultiCell(90, 5, addr, "", "L", false)
+		pdf.SetXY(leftX, y)
+		pdf.MultiCell(leftW, 5, addr, "", "L", false)
 		pdf.SetXY(105, y)
 		pdf.CellFormat(90, 5, "No. "+d.DocNo, "", 1, "R", false, 0, "")
 	}
@@ -117,7 +124,8 @@ func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	contact := strings.TrimSpace(c.Email + "  |  " + c.Phone)
 	if contact != "" {
 		y = pdf.GetY()
-		pdf.MultiCell(90, 5, contact, "", "L", false)
+		pdf.SetXY(leftX, y)
+		pdf.MultiCell(leftW, 5, contact, "", "L", false)
 		pdf.SetXY(105, y)
 		pdf.CellFormat(90, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
 	} else {
@@ -249,6 +257,31 @@ func notesBlock(pdf *fpdf.Fpdf, o models.Order) {
 	pdf.MultiCell(0, 5, o.Notes, "", "L", false)
 }
 
+// drawLogo — gambar logo kiri atas; return lebar yang dikonsumsi (0 = tidak ada).
+func drawLogo(pdf *fpdf.Fpdf, c models.CompanySetting) float64 {
+	if c.LogoImage == "" {
+		return 0
+	}
+	if _, err := os.Stat(c.LogoImage); err != nil {
+		return 0
+	}
+	if info := pdf.RegisterImage(c.LogoImage, ""); info != nil {
+		w := 40.0
+		h := w * info.Height() / info.Width()
+		if h > 18 {
+			h = 18
+			w = h * info.Width() / info.Height()
+		}
+		if w > 50 {
+			w = 50
+			h = w * info.Height() / info.Width()
+		}
+		pdf.ImageOptions(c.LogoImage, 15, pdf.GetY(), w, h, false, fpdf.ImageOptions{ImageType: "", ReadDpi: true}, 0, "")
+		return w + 7 // jarak ke teks
+	}
+	return 0
+}
+
 func originBlock(pdf *fpdf.Fpdf, d DocData) {
 	pdf.Ln(1)
 	pdf.SetFont("DVS", "", 8)
@@ -356,6 +389,7 @@ func signatureBlock(pdf *fpdf.Fpdf, d DocData) {
 
 func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 	o := d.Order
+	drawLogo(pdf, d.Company)
 	pdf.SetFont("DVS-B", "", 13)
 	pdf.CellFormat(0, 8, "PEB DATA SHEET", "", 1, "C", false, 0, "")
 	pdf.SetFont("DVS", "", 8)

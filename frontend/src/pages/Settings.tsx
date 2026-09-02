@@ -13,10 +13,12 @@ export default function Settings() {
   const [msg, setMsg] = useState('')
   const [sigPreview, setSigPreview] = useState('')
   const [sigFile, setSigFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState('')
+  const [logoFile, setLogoFile] = useState<File | null>(null)
 
   useEffect(() => {
     api<CompanySetting>('/company')
-      .then((d) => { setForm(d); setSigPreview(d.signature_image ? `/api/company/signature-image?t=${Date.now()}` : '') })
+      .then((d) => { setForm(d); setSigPreview(d.signature_image ? `/api/company/signature-image?t=${Date.now()}` : ''); setLogoPreview(d.logo_image ? `/api/company/logo-image?t=${Date.now()}` : '') })
       .catch(() => setMsg('gagal memuat profil'))
       .finally(() => setLoading(false))
   }, [])
@@ -44,6 +46,19 @@ export default function Settings() {
       setMsg('tanda tangan tersimpan ✓')
       setSigPreview(`/api/company/signature-image?t=${Date.now()}`)
       setSigFile(null)
+    } catch { setMsg('gagal upload (PNG/JPG maks 2MB)') } finally { setSaving(false) }
+  }
+
+  const uploadLogo = async () => {
+    if (!logoFile) return
+    const fd = new FormData()
+    fd.append('file', logoFile)
+    setSaving(true); setMsg('')
+    try {
+      await postForm('/company/logo', fd)
+      setMsg('logo tersimpan ✓')
+      setLogoPreview(`/api/company/logo-image?t=${Date.now()}`)
+      setLogoFile(null)
     } catch { setMsg('gagal upload (PNG/JPG maks 2MB)') } finally { setSaving(false) }
   }
 
@@ -120,6 +135,26 @@ export default function Settings() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Simpan
               </button>
             </div>
+          </div>
+
+          <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+              <Building2 className="h-4 w-4 text-amber-500" /> Logo Perusahaan
+            </h2>
+            <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-950">
+              {logoPreview
+                ? <img src={logoPreview} alt="logo" className="max-h-20 max-w-full object-contain" />
+                : <span className="text-xs text-zinc-500">belum ada</span>}
+            </div>
+            <input type="file" accept="image/png,image/jpeg" className="w-full text-xs text-zinc-400 file:mr-2 file:rounded file:border-0 file:bg-zinc-800 file:px-2 file:py-1 file:text-xs file:text-zinc-200"
+              onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)} />
+            <button onClick={uploadLogo} disabled={!logoFile || saving}
+              className="btn-press inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-700 disabled:opacity-50">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} Upload
+            </button>
+            <p className="text-[11px] leading-relaxed text-zinc-500">
+              PNG/JPG maks 2 MB. Tampil di kiri atas semua dokumen (termasuk PEB).
+            </p>
           </div>
 
           <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">

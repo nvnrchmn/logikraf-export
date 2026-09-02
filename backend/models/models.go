@@ -158,6 +158,7 @@ type CompanySetting struct {
 	SignerName     string    `gorm:"size:100" json:"signer_name"`
 	SignerTitle    string    `gorm:"size:100" json:"signer_title"`
 	SignatureImage string    `gorm:"size:255" json:"signature_image"`
+	LogoImage      string    `gorm:"size:255" json:"logo_image"`
 	UpdatedBy      uint      `json:"updated_by"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }

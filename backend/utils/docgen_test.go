@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/base64"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,6 +27,7 @@ func sampleDocData(docType string) DocData {
 			SignerName:     "Nova Nurachman",
 			SignerTitle:    "Direktur",
 			SignatureImage: "storage/signatures/tidak-ada.png", // file hilang ≠ gagal render
+			LogoImage:      "/tmp/lx-docgen/logo.png",
 		},
 		Order: models.Order{
 			OrderNo:      "ORD-2026-0001",
@@ -100,6 +102,15 @@ func TestBuildDocumentRender(t *testing.T) {
 	}
 	out := filepath.Join(os.TempDir(), "lx-docgen")
 	if err := os.MkdirAll(out, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// logo uji (PNG 10x10 merah) — path dipakai sampleDocData
+	logoB64 := "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGElEQVR4nGO8o6Hxn4EIwESMolGF1FMIAIUJAj+LLU9MAAAAAElFTkSuQmCC"
+	logoBytes, err := base64.StdEncoding.DecodeString(logoB64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(out, "logo.png"), logoBytes, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	for _, typ := range []string{"PI", "CI", "PL", "SI", "PEB"} {
