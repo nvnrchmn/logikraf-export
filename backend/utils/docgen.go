@@ -94,21 +94,22 @@ func fontPath(style string) string {
 
 func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	c := d.Company
-	// Logo (kiri atas) kalau ada — teks header bergeser ke kanan mengikuti
+	// Layout dua kolom: tanpa logo → kiri x=15 (90mm), kanan x=105 (90mm).
+	// Dengan logo → kiri x=62 (133mm), elemen kanan rata kanan dalam 62..195.
 	leftX, leftW := 15.0, 90.0
-	if lw := drawLogo(pdf, c); lw > 0 {
-		leftX, leftW = 15.0+lw, 105.0-(15.0+lw)
+	if drawLogo(pdf, c) > 0 {
+		leftX, leftW = 62.0, 133.0
 	}
-	// Baris 1: nama perusahaan (kiri, wrap) + judul dokumen (kanan)
+	// Baris 1: nama perusahaan (kiri) + judul dokumen (kanan, satu baris)
 	pdf.SetFont("DVS-B", "", 13)
 	y := pdf.GetY()
 	pdf.SetXY(leftX, y)
 	pdf.MultiCell(leftW, 8, c.CompanyName, "", "L", false)
 	pdf.SetFont("DVS-B", "", 12)
-	pdf.SetXY(105, y)
-	pdf.CellFormat(90, 8, title, "", 1, "R", false, 0, "")
+	pdf.SetXY(leftX, y)
+	pdf.CellFormat(leftW, 8, title, "", 1, "R", false, 0, "")
 
-	// Baris 2: alamat (kiri, wrap) + nomor dokumen (kanan)
+	// Baris 2: alamat (kiri) + nomor dokumen (kanan)
 	pdf.SetFont("DVS", "", 8)
 	pdf.SetTextColor(100, 116, 139)
 	addr := strings.TrimSpace(c.Address + ", " + c.City)
@@ -116,21 +117,21 @@ func header(pdf *fpdf.Fpdf, d DocData, title string) {
 		y = pdf.GetY()
 		pdf.SetXY(leftX, y)
 		pdf.MultiCell(leftW, 5, addr, "", "L", false)
-		pdf.SetXY(105, y)
-		pdf.CellFormat(90, 5, "No. "+d.DocNo, "", 1, "R", false, 0, "")
+		pdf.SetXY(leftX, y)
+		pdf.CellFormat(leftW, 5, "No. "+d.DocNo, "", 1, "R", false, 0, "")
 	}
 
-	// Baris 3: kontak (kiri, wrap) + tanggal (kanan)
+	// Baris 3: kontak (kiri) + tanggal (kanan)
 	contact := strings.TrimSpace(c.Email + "  |  " + c.Phone)
 	if contact != "" {
 		y = pdf.GetY()
 		pdf.SetXY(leftX, y)
 		pdf.MultiCell(leftW, 5, contact, "", "L", false)
-		pdf.SetXY(105, y)
-		pdf.CellFormat(90, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
+		pdf.SetXY(leftX, y)
+		pdf.CellFormat(leftW, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
 	} else {
-		pdf.CellFormat(90, 5, "", "", 0, "L", false, 0, "")
-		pdf.CellFormat(90, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
+		pdf.CellFormat(leftW, 5, "", "", 0, "L", false, 0, "")
+		pdf.CellFormat(leftW, 5, "Date: "+fmtDate(time.Now()), "", 1, "R", false, 0, "")
 	}
 
 	// NIB & NPWP — label Inggris, wrap bila melebihi lebar halaman
@@ -389,11 +390,20 @@ func signatureBlock(pdf *fpdf.Fpdf, d DocData) {
 
 func pebSheet(pdf *fpdf.Fpdf, d DocData) {
 	o := d.Order
-	drawLogo(pdf, d.Company)
+	hasLogo := drawLogo(pdf, d.Company) > 0
 	pdf.SetFont("DVS-B", "", 13)
-	pdf.CellFormat(0, 8, "PEB DATA SHEET", "", 1, "C", false, 0, "")
-	pdf.SetFont("DVS", "", 8)
-	pdf.CellFormat(0, 5, "Order: "+o.OrderNo+"  |  Tanggal: "+fmtDate(time.Now()), "", 1, "C", false, 0, "")
+	if hasLogo {
+		// judul & info order di kanan logo (x=62..195), tidak tertimpa
+		pdf.SetXY(62, pdf.GetY())
+		pdf.CellFormat(133, 8, "PEB DATA SHEET", "", 1, "C", false, 0, "")
+		pdf.SetFont("DVS", "", 8)
+		pdf.SetXY(62, pdf.GetY())
+		pdf.CellFormat(133, 5, "Order: "+o.OrderNo+"  |  Tanggal: "+fmtDate(time.Now()), "", 1, "C", false, 0, "")
+	} else {
+		pdf.CellFormat(0, 8, "PEB DATA SHEET", "", 1, "C", false, 0, "")
+		pdf.SetFont("DVS", "", 8)
+		pdf.CellFormat(0, 5, "Order: "+o.OrderNo+"  |  Tanggal: "+fmtDate(time.Now()), "", 1, "C", false, 0, "")
+	}
 	pdf.Ln(3)
 
 	eksportir := d.Company.CompanyName + " — " + strings.TrimSpace(d.Company.Address+", "+d.Company.City)
