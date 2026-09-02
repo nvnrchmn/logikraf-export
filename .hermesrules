@@ -50,7 +50,8 @@ storage/signatures/  tanda tangan digital (PNG/JPG, 1 file: signature.<ext>)
 - [x] **Kop surat resmi (letterhead) SELESAI + VERIFIED live**: logo kiri + teks tengah (nama center bold 13.5, alamat, kontak email|telp|website, Business ID (NIB) | Tax ID (NPWP) — NPWP pindah ke kop), garis kop ganda 0.8+0.25mm, judul dokumen + No./Date di bawah garis; PEB pakai kop sama; dedupeAddr anti-duplikat alamat (test 4 kasus); berlaku semua dokumen
 - [x] **REVISI: format invoice klasik (bukan kop surat) SELESAI + VERIFIED live (998b390)**: user nilai kop surat kurang rapi → ganti: logo kiri + nama/alamat/kontak/NIB di kolom kiri (x=62..195), judul dokumen + No./Date rata kanan sebaris, garis pemisah tipis 4mm di bawah blok (bukan kop ganda); PEB pakai header sama + baris Order di info blok; verified: garis 41.4mm tak memotong, urutan teks per baris benar
 - [x] **Dashboard: Dokumen Terbaru bisa diklik (48ccb5b)**: recent_docs + order_id di API, item jadi Link → /orders/:id + hover (konsisten dgn Pesanan Terbaru); verified live order_id=14 dll
-- [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
+- [x] **Logo dihapus total (15b50e8)**: user nilai tidak perlu → hapus render di docgen + handler/route/model backend + card upload di Pengaturan; fix ikutan: kontak ' | ' 1 baris, NIB/NPWP full width 1 baris; verified live PI-202609-0027: 0px logo, 4 baris header rapi
+ - [ ] Sprint 3 (opsional): label QR, notifikasi email, history/version dokumen, multi-currency, import CSV
 
 ## Operasional
 - CI: `.github/workflows/deploy.yml` — push main → build → rsync (sudo) → restart systemd
