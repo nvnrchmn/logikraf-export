@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import type { Product } from '../lib/types'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { Button, EmptyState, Field, Modal, inputCls, SkeletonList } from '../components/UI'
+import { toast } from '../components/Toast'
 
 const empty: Omit<Product, 'id' | 'created_at' | 'updated_at'> = {
   sku: '',
@@ -83,6 +84,7 @@ export default function Products() {
       }
       setModalOpen(false)
       await load(q)
+      toast(editing ? 'Produk diperbarui' : 'Produk ditambahkan')
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -94,6 +96,7 @@ export default function Products() {
     if (!confirm(`Hapus produk ${p.sku}?`)) return
     await api(`/products/${p.id}`, { method: 'DELETE' })
     await load(q)
+    toast('Produk dihapus')
   }
 
   const set = (k: keyof typeof empty, v: string | number | boolean) =>

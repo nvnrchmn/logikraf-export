@@ -21,6 +21,7 @@ import { fmtMoney, statusFlow, statusMeta } from '../lib/status'
 import { Button, inputCls } from '../components/UI'
 import Breadcrumbs from '../components/Breadcrumbs'
 import CourierPack from '../components/CourierPack'
+import { toast } from '../components/Toast'
 
 const docDefs = [
   { type: 'PI', label: 'Proforma Invoice', min: 'draft' },
@@ -125,11 +126,21 @@ export default function OrderDetail() {
       setQty('')
       setPrice('')
       await load()
+      toast('Item produk ditambahkan')
     } catch (err) {
       setError((err as Error).message)
     } finally {
       setBusy(false)
     }
+  }
+
+  const stLabel: Record<string, string> = {
+    draft: 'Draft',
+    confirmed: 'Dikonfirmasi',
+    packed: 'Dikemas',
+    shipped: 'Dikirim',
+    completed: 'Selesai',
+    cancelled: 'Dibatalkan',
   }
 
   const changeStatus = async (next: string) => {
@@ -138,6 +149,7 @@ export default function OrderDetail() {
     try {
       await api(`/orders/${oid}/status`, { method: 'PATCH', body: { status: next } })
       await load()
+      toast(`Status order → ${stLabel[next] ?? next}`)
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -149,6 +161,7 @@ export default function OrderDetail() {
     if (!confirm('Hapus item ini?')) return
     await api(`/orders/${oid}/items/${itemId}`, { method: 'DELETE' })
     await load()
+    toast('Item dihapus')
   }
 
   const generateDoc = async (type: string) => {
@@ -157,6 +170,7 @@ export default function OrderDetail() {
     try {
       await api(`/orders/${oid}/documents/${type}`, { method: 'POST' })
       await load()
+      toast('Dokumen dibuat / diperbarui')
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -205,6 +219,7 @@ export default function OrderDetail() {
       await api(`/documents/${delDoc.id}`, { method: 'DELETE' })
       setDelDoc(null)
       await load()
+      toast('Dokumen dihapus')
     } catch (err) {
       setError((err as Error).message)
       setDelDoc(null)
@@ -220,6 +235,7 @@ export default function OrderDetail() {
     try {
       await api(`/orders/${oid}/shipment`, { method: 'PUT', body: sh })
       await load()
+      toast('Data pengiriman disimpan')
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -236,6 +252,7 @@ export default function OrderDetail() {
     try {
       await api(`/orders/${oid}/payment`, { method: 'PUT', body: { status: s, note: payNote } })
       await load()
+      toast(s === 'paid' ? 'Pembayaran lunas ✓' : s === 'dp' ? 'Pembayaran DP tercatat' : 'Status pembayaran: belum bayar')
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -539,8 +556,8 @@ export default function OrderDetail() {
         </div>
 
         {delDoc && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setDelDoc(null)}>
-            <div className="anim-pop w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4" onClick={() => setDelDoc(null)}>
+            <div className="anim-pop my-auto w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                 <Trash2 size={16} className="text-rose-400" /> Hapus dokumen?
               </h3>

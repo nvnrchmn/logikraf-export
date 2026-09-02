@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AuthProvider } from './context/AuthContext'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
+import { Toasts } from './components/Toast'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
@@ -17,6 +18,7 @@ import Settings from './pages/Settings'
 export default function App() {
   return (
     <AuthProvider>
+      <Toasts />
       <BrowserRouter>
         <ErrorBoundary>
           <Routes>

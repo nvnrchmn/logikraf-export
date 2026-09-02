@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import type { Buyer } from '../lib/types'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { Button, EmptyState, Field, Modal, inputCls, SkeletonList } from '../components/UI'
+import { toast } from '../components/Toast'
 
 const empty: Omit<Buyer, 'id' | 'created_at' | 'updated_at'> = {
   company_name: '',
@@ -79,6 +80,7 @@ export default function Buyers() {
       }
       setModalOpen(false)
       await load(q)
+      toast(editing ? 'Buyer diperbarui' : 'Buyer ditambahkan')
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -90,6 +92,7 @@ export default function Buyers() {
     if (!confirm(`Hapus buyer ${b.company_name}?`)) return
     await api(`/buyers/${b.id}`, { method: 'DELETE' })
     await load(q)
+    toast('Buyer dihapus')
   }
 
   const set = (k: keyof typeof empty, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }))
