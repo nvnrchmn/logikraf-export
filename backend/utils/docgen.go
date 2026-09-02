@@ -124,10 +124,10 @@ func header(pdf *fpdf.Fpdf, d DocData, title string) {
 	// Baris 3: kontak (kiri) + tanggal (kanan)
 	contact := strings.TrimSpace(c.Email)
 	if c.Phone != "" {
-		contact = strings.TrimSpace(contact + "  |  " + c.Phone)
+		contact = strings.TrimSpace(contact + " | " + c.Phone)
 	}
 	if c.Website != "" {
-		contact = strings.TrimSpace(contact + "  |  " + c.Website)
+		contact = strings.TrimSpace(contact + " | " + c.Website)
 	}
 	if contact != "" {
 		y = pdf.GetY()
