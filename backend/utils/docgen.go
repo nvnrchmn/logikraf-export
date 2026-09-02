@@ -151,8 +151,8 @@ func header(pdf *fpdf.Fpdf, d DocData, title string) {
 		}
 		pdf.SetFont("DVS", "", 7.5)
 		pdf.SetTextColor(120, 130, 145)
-		pdf.SetX(leftX)
-		pdf.MultiCell(leftW, 4.5, strings.Join(ids, "   |   "), "", "L", false)
+		pdf.SetX(15)
+		pdf.MultiCell(0, 4.5, strings.Join(ids, "   |   "), "", "L", false)
 	}
 
 	// Garis pemisah tipis (bukan kop ganda) — 4mm di bawah blok header
