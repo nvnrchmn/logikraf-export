@@ -20,6 +20,7 @@ import type { Document, Order, Product, Shipment } from '../lib/types'
 import { fmtMoney, statusFlow, statusMeta } from '../lib/status'
 import { Button, inputCls } from '../components/UI'
 import Breadcrumbs from '../components/Breadcrumbs'
+import CourierPack from '../components/CourierPack'
 
 const docDefs = [
   { type: 'PI', label: 'Proforma Invoice', min: 'draft' },
@@ -499,6 +500,11 @@ export default function OrderDetail() {
         />
         {order.paid_at && <p className="mt-2 text-[11px] text-emerald-400">✓ Lunas sejak {order.paid_at.slice(0, 10)}</p>}
       </div>
+
+      {/* Data Kirim Kurir — jalur utama kurir */}
+      {order.shipping_mode === 'courier' && order.status !== 'cancelled' && order.buyer && order.items.length > 0 && (
+        <CourierPack order={order} />
+      )}
 
       {/* Dokumen */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
