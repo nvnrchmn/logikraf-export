@@ -70,8 +70,9 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 
 	// Reuse nomor dokumen yang sudah pernah dibuat untuk (order, tipe) — regenerasi
 	// karena perubahan data TIDAK boleh mengganti nomor (nomor sudah jadi referensi buyer).
+	// Yang dipertahankan = nomor PERTAMA (record tertua); duplikat hasil regenerate lama dibersihkan.
 	var existing models.Document
-	err = h.DB.Where("order_id = ? AND doc_type = ?", id, docType).Order("id DESC").First(&existing).Error
+	err = h.DB.Where("order_id = ? AND doc_type = ?", id, docType).Order("id ASC").First(&existing).Error
 	regenerating := err == nil
 	var docNo string
 	if regenerating {
@@ -111,9 +112,10 @@ func (h *DocumentHandler) Generate(c fiber.Ctx) error {
 		if err := h.DB.Save(&existing).Error; err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": "gagal memperbarui dokumen"})
 		}
-		// Bersihkan duplikat lama hasil regenerasi sebelumnya (nomor beda, isi usang).
+		// Bersihkan duplikat lain hasil regenerasi lama (nomor beda, isi usang) —
+		// sisakan hanya record pertama (nomor asli).
 		var stale []models.Document
-		h.DB.Where("order_id = ? AND doc_type = ? AND id < ?", id, docType, existing.ID).Find(&stale)
+		h.DB.Where("order_id = ? AND doc_type = ? AND id > ?", id, docType, existing.ID).Find(&stale)
 		for _, s := range stale {
 			if err := os.Remove(s.FilePath); err != nil && !os.IsNotExist(err) {
 				continue
