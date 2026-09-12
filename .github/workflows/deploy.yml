@@ -3,7 +3,14 @@ name: Build and Deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.hermesrules'
+      - '.hermesrules-arsip.md'
+      - 'docs/**'
+      - 'LICENSE'
 
+  workflow_dispatch:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
